@@ -2,12 +2,23 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "dotnet: run",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}/app/AIOverflow.csproj",
+            ],
+            "type": "process",
+            "problemMatcher": "$msCompile"
+        },        
+        {
             "label": "build",
             "command": "dotnet",
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/AIOverflow.csproj",
+                "${workspaceFolder}/app/AIOverflow.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +30,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/AIOverflow.csproj",
+                "${workspaceFolder}/app/AIOverflow.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +44,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/AIOverflow.csproj"
+                "${workspaceFolder}/app/AIOverflow.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
