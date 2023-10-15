@@ -1,19 +1,21 @@
-import { Route, Routes } from 'react-router-dom';
-import AppRoutes from './AppRoutes';
+import { Outlet } from 'react-router-dom';
 import Layout from './components/Layout';
 import './custom.css';
 
-function App() {
-  return (
-    <Layout>
-      <Routes>
-        {AppRoutes.map((route, index) => {
-          const { element, ...rest } = route;
-          return <Route key={index} {...rest} element={element} />;
-        })}
-      </Routes>
-    </Layout>
-  );
-}
+import { Component } from 'react'
 
-export default App;
+type Props = {}
+
+type State = {}
+
+export default class App extends Component<Props, State> {
+  state = {}
+
+  render() {
+    return (
+      <Layout>
+        <Outlet />
+      </Layout>
+    )
+  }
+}
