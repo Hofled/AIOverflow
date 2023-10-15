@@ -1,7 +1,7 @@
-import logo from '../../logo.svg';
 import './Home.css';
 
 import { Component } from 'react'
+import Banner from '../Banner/Banner';
 
 type Props = {}
 
@@ -12,21 +12,9 @@ export default class Home extends Component<Props, State> {
 
     render() {
         return (
-            <div className="App">
-                <header className="App-header">
-                    <img src={logo} className="App-logo" alt="logo" />
-                    <p>
-                        Edit <code>src/App.tsx</code> and save to reload.
-                    </p>
-                    <a
-                        className="App-link"
-                        href="https://reactjs.org"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Learn React
-                    </a>
-                </header>
+            <div className="home">
+                <Banner text='AIOverflow'/>
+                <p>Welcome to the AIOverflow forums!</p>
             </div>
         )
     }

@@ -6,7 +6,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     return (
         <div>
             <NavMenu />
-            <Container tag="main">
+            <Container fluid style={{padding: 0}}>
                 {children}
             </Container>
         </div>
