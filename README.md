@@ -34,13 +34,15 @@ After the container is running, you can access the web application from `http://
 
 ## Debugging The Application
 ## Locally
-In order to debug the application's code, there are 2 VS Code [launch configurations](./.vscode/launch.json) which allow to debug both the React web application and the ASP.NET server.
+In order to debug the application's code, there's a VS Code [launch configuration](./.vscode/launch.json) and a VS Code [task](./.vscode/tasks.json) which allow to debug both the React web application and the ASP.NET server.
 ### ASP.NET Server
 **Important**: There are .NET requirements for running & debugging the ASP.NET server locally, please make sure that everything required is installed properly, VS Code should prompt you automatically for installing all the requirements once the corresponding launch configurations run for the first time.
 <hr/>
 
-In order to run the ASP.NET server for debugging, launch the `.NET Core Launch (web)` configuration.
-This should start the ASP.NET process and run the server, and allow setting breakpoints from within VS Code for debugging the code.
+In order to run the ASP.NET server for debugging, execute the `dotnet: run` task.
+This should start the ASP.NET process and run the server in development mode, together with a SPA proxy middleware for rerouting requests that reach the web application port to the ASP.NET endpoints (which are served on a different port).
+After the server is running, you need to run the launch configuration named `.NET Core Attach`, which will attach to the corresponding server process, and allow debugging the process and set breakpoints from the VS Code IDE.
+The corresponding process which needs to be attached may be filtered and found by typing `run` after launching the configuration, and a process named `<Application Name> run` should be present.
 
 ### React Web Application
 Once the ASP.NET server is running and serves the web application, you can attach to the Chrome browser in order to debug the React code from within VS Code.
