@@ -1,0 +1,36 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+    environment:
+      - ConnectionString=Host=db;Database=forumdb;Username=formadmin;Password=securepassword
+    networks:
+      - forum-network
+    profiles:
+      ["web"]
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: forumdb
+      POSTGRES_USER: forumadmin
+      POSTGRES_PASSWORD: securepassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - forum-network
+
+volumes:
+  pgdata:
+
+networks:
+  forum-network:
+    driver: bridge
