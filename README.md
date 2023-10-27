@@ -33,7 +33,7 @@ After the container is running, you can access the web application from `http://
 *Please note* that the application is currently served over `HTTP` and not `HTTPS`.
 
 ## Debugging The Application
-## Locally
+### Locally
 In order to debug the application's code, there's a VS Code [launch configuration](./.vscode/launch.json) and a VS Code [task](./.vscode/tasks.json) which allow to debug both the React web application and the ASP.NET server.
 ### ASP.NET Server
 **Important**: There are .NET requirements for running & debugging the ASP.NET server locally, please make sure that everything required is installed properly, VS Code should prompt you automatically for installing all the requirements once the corresponding launch configurations run for the first time.
