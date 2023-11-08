@@ -6,13 +6,8 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.57",
-    "@types/react": "^18.2.24",
-    "@types/react-dom": "^18.2.8",
-    "@types/react-router-dom": "^5.3.3",
-    "@types/reactstrap": "^8.7.2",
     "bootstrap": "^5.3.2",
+    "oidc-client": "^1.11.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-bootstrap": "^0.26.2",
@@ -48,6 +43,12 @@
     ]
   },
   "devDependencies": {
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.57",
+    "@types/react": "^18.2.24",
+    "@types/react-dom": "^18.2.8",
+    "@types/react-router-dom": "^5.3.3",
+    "@types/reactstrap": "^8.7.2",
     "jest-watch-typeahead": "^0.6.5"
   }
 }
