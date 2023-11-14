@@ -27,6 +27,8 @@ services:
       - ./database:/docker-entrypoint-initdb.d
     networks:
       - forum-network
+    profiles:
+      ["db"]
 
 volumes:
   pgdata:
