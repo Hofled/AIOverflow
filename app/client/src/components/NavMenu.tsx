@@ -36,6 +36,9 @@ export default function NavMenu() {
             <NavItem>
               <NavLink tag={Link} className="text-dark" to="/">Home</NavLink>
             </NavItem>
+            <NavItem>
+              <NavLink tag={Link} className="text-dark" to="/weatherForecast">Weather</NavLink>
+            </NavItem>
           </ul>
         </Collapse>
       </Navbar>
