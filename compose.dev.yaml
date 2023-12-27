@@ -1,16 +1,18 @@
-name: aioverflow-prod
+name: aioverflow-dev
 
 services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./Dockerfile
     ports:
       - "8000:80"
     depends_on:
       - db
     environment:
       - ConnectionString=Host=db;Database=forumdb;Username=formadmin;Password=securepassword
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_APPLICATIONNAME=AIOverflow
     networks:
       - forum-network
     profiles:
