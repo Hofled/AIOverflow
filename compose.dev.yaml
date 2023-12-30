@@ -15,8 +15,6 @@ services:
       - ASPNETCORE_APPLICATIONNAME=AIOverflow
     networks:
       - forum-network
-    profiles:
-      ["web"]
 
   db:
     image: postgres:latest
@@ -31,8 +29,6 @@ services:
       - ./database:/docker-entrypoint-initdb.d
     networks:
       - forum-network
-    profiles:
-      ["db"]
 
 volumes:
   pgdata:
