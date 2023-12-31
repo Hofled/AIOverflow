@@ -2,9 +2,10 @@ name: aioverflow-dev
 
 services:
   web:
+    image: aioverflow-web:debug
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.dev.debug
     ports:
       - "8000:80"
     depends_on:
@@ -29,6 +30,22 @@ services:
       - ./database:/docker-entrypoint-initdb.d
     networks:
       - forum-network
+    profiles:
+      ["debug"]
+
+  pgAdmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@email.com
+      PGADMIN_DEFAULT_PASSWORD: 123
+    ports:
+      - "8900:80"
+    depends_on:
+      - db
+    networks:
+      - forum-network
+    profiles:
+      ["debug"]
 
 volumes:
   pgdata:

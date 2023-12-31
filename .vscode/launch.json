@@ -16,8 +16,8 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "ASPNETCORE_APPLICATIONNAME": "AIOverflow",
-            },
+                "ASPNETCORE_APPLICATIONNAME": "AIOverflow"
+            }
         },
         {
             "name": "Attach to Chrome",
@@ -30,7 +30,21 @@
         {
             "name": ".NET Core Attach",
             "type": "coreclr",
-            "request": "attach"
+            "request": "attach",
+            "processId": "${command:pickProcess}"
         },
+        {
+            "name": "Docker .NET Attach",
+            "type": "docker",
+            "request": "attach",
+            "processId": 1,
+            "sourceFileMap": {
+                "/source": "${workspaceFolder}/app"
+            },
+            "netCore": {
+                "appProject": "${workspaceFolder}/app/AIOverflow.csproj",
+                "debuggerPath": "/vsdbg/vsdbg"
+            }
+        }
     ]
 }
