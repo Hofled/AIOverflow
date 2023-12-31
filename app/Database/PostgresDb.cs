@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using AIOverflow.Identity;
 
-namespace Identity;
+namespace AIOverflow.Database;
 
 public class PostgresDb : DbContext
 {
     public DbSet<User> Users { get; set; }
-
     public PostgresDb(DbContextOptions<PostgresDb> options) : base(options)
     {
         Database.Migrate();
@@ -17,10 +17,15 @@ public class PostgresDb : DbContext
         modelBuilder.Entity<User>().HasIndex(u => u.Name).IsUnique();
     }
 
-    public void AddUser(User user)
+    public async Task<int> AddUserAsync(User user)
     {
-        Users.Add(user);
-        SaveChanges();
+        var existingUser = await Users.FirstOrDefaultAsync(u => u.Name == user.Name);
+        if (existingUser != null)
+        {
+            throw new Exception($"User {user.Name} already exists");
+        }
+        await Users.AddAsync(user);
+        return await SaveChangesAsync();
     }
 
     public List<User> GetUsers()
@@ -33,19 +38,15 @@ public class PostgresDb : DbContext
         return Users.Find(id);
     }
 
-    public User? GetUserByName(string name)
+    public async Task<User?> GetUserByNameAsync(string name)
     {
-        return Users.FirstOrDefault(u => u.Name == name);
+        return await Users.Include(u => u.Claims).SingleOrDefaultAsync(u => u.Name == name);
     }
 
-    public void UpdateUser(User updatedUser)
+    public async Task<int> UpdateUserAsync(User updatedUser)
     {
-        var existingUser = Users.Find(updatedUser.Id);
-        if (existingUser != null)
-        {
-            Entry(existingUser).CurrentValues.SetValues(updatedUser);
-            SaveChanges();
-        }
+        Entry(updatedUser).CurrentValues.SetValues(updatedUser);
+        return await SaveChangesAsync();
     }
 
     public void DeleteUser(int id)
