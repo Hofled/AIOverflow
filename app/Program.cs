@@ -8,6 +8,7 @@ AIOverflow.Identity.Services.ConfigureServices(builder);
 AddDbContext(builder);
 
 var app = builder.Build();
+app.MapFallbackToFile("index.html");
 
 AIOverflow.Identity.Endpoints.ConfigureIdentity(app);
 UseAppMiddlewares(app);
@@ -29,6 +30,15 @@ static void AddDbContext(WebApplicationBuilder builder)
 
 static void UseAppMiddlewares(WebApplication app)
 {
+    // Configure the HTTP request pipeline.
+    if (!app.Environment.IsDevelopment())
+    {
+        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+        app.UseHsts();
+    }
+
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
     app.UseHttpLogging();
     app.UseAuthentication();
     app.UseAuthorization();
