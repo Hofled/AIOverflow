@@ -3,25 +3,28 @@ import { Navigate } from "react-router-dom";
 import { LoginActions } from "../../routing/authorization/actions";
 import { QueryParameterNames } from "../../services/authorization/consts";
 import authService from "../../services/authorization/service";
+import LoginModal from "./Login/LoginModal";
 
-type Props = { path: string, element: React.JSX.Element }
+type Props = { role?: string, path: string, element: React.JSX.Element }
 
-type State = { ready: boolean, authenticated: boolean }
+type State = { authenticationReady: boolean, authenticated: boolean, authorized: boolean, loginModalOpened: boolean }
 
 export default class AuthorizedRoute extends Component<Props, State> {
     private _subscription?: number;
 
-    constructor(props: any) {
+    constructor(props: Props) {
         super(props);
 
         this.state = {
-            ready: false,
-            authenticated: false
+            authenticationReady: false,
+            authenticated: false,
+            authorized: false,
+            loginModalOpened: false
         }
     }
 
     componentDidMount() {
-        this._subscription = authService.subscribe(() => this.authenticationChanged());
+        this._subscription = authService.subscribe(isAuthenticated => this.authenticationChanged(isAuthenticated));
         this.populateAuthenticationState();
     }
 
@@ -34,15 +37,36 @@ export default class AuthorizedRoute extends Component<Props, State> {
     }
 
     render() {
-        const { ready, authenticated } = this.state;        
-        if (!ready) {
+        const { authenticationReady, authenticated, authorized } = this.state;
+        if (!authenticationReady) {
             return <div>Authentication Pending...</div>;
-        } else {
-            const { element } = this.props;
-            return authenticated ? element : <Navigate replace to={this.getRedirectUrl()} />;
+        }
+        else {
+            if (authenticated) {
+                if (!!this.props.role && authorized) {
+                    return this.props.element;
+                }
+                else if (!!!this.props.role) {
+                    return this.props.element;
+                }
+
+                return <Navigate replace to={this.getRedirectUrl()}></Navigate>
+            }
+
+            return <LoginModal isOpen={this.state.loginModalOpened} toggle={() => this.setState({ loginModalOpened: !this.state.loginModalOpened })} onLogin={this.onSuccessfulLogin} />;
         }
     }
 
+    // TODO use the authService to check the authorization state
+    async authorized(role: string): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    onSuccessfulLogin() {
+        this.setState({ loginModalOpened: false });
+    }
+
+    // TODO make sure that the url is correct
     getRedirectUrl(): string {
         var link = document.createElement("a");
         link.href = this.props.path;
@@ -50,13 +74,12 @@ export default class AuthorizedRoute extends Component<Props, State> {
         return `${LoginActions.Login}?${QueryParameterNames.ReturnUrl}=${encodeURIComponent(returnUrl)}`;
     }
 
-    async populateAuthenticationState() {
-        const authenticated = await authService.isAuthenticated();
-        this.setState({ ready: true, authenticated });
+    async authenticationChanged(authenticated: boolean) {
+        this.setState({ authenticationReady: true, authenticated });
     }
 
-    async authenticationChanged() {
-        this.setState({ ready: false, authenticated: false });
-        await this.populateAuthenticationState();
+    async populateAuthenticationState() {
+        const authenticated = await authService.isAuthenticated();
+        this.setState({ authenticationReady: true, authenticated });
     }
 }

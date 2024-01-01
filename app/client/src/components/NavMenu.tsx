@@ -1,47 +1,55 @@
-import { useReducer } from 'react';
-import { Collapse, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
+import { Component, useReducer } from 'react';
+import { Button, Collapse, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import './NavMenu.css';
+import LoginModal from './Authorization/Login/LoginModal';
 
 interface State {
   collapsed: boolean
+  isLoginModalOpen: boolean
 }
 
-type NavAction =
-  | { type: "toggleCollapsed"; };
+export default class NavMenu extends Component<{}, State> {
+  constructor(props: {}) {
+    super(props);
 
-const initialState = { collapsed: true };
-
-function stateReducer(state: State, action: NavAction): State {
-  switch (action.type) {
-    case "toggleCollapsed":
-      return { ...state, collapsed: !state.collapsed };
-    default:
-      throw new Error("Unknown action");
+    this.state = {
+      collapsed: true,
+      isLoginModalOpen: false,
+    };
   }
-}
 
-export default function NavMenu() {
-  const [state, dispatch] = useReducer(stateReducer, initialState);
+  toggleLoginModal = () => {
+    this.setState({ isLoginModalOpen: !this.state.isLoginModalOpen });
+  }
 
-  const toggleNavbar = () => { dispatch({ type: "toggleCollapsed" }) }
+  render() {
+    return (
+      <header>
+        <Navbar className="navbar-expand-sm navbar-toggleable-sm ng-white border-bottom box-shadow" container light>
+          <NavbarBrand tag={Link} to="/">AIOverflow</NavbarBrand>
+          <NavbarToggler onClick={() => this.setState({ collapsed: !this.state.collapsed })} className="mr-2" />
+          <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!this.state.collapsed} navbar>
+            <ul className="navbar-nav flex-grow">
+              <NavItem>
+                <NavLink tag={Link} className="text-dark" to="/">Home</NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink tag={Link} className="text-dark" to="/weatherForecast">Weather</NavLink>
+              </NavItem>
+              <NavItem>
+                <Button color="primary" className="text-dark" onClick={this.toggleLoginModal}>Login</Button>
+              </NavItem>
+            </ul>
+          </Collapse>
+        </Navbar>
 
-  return (
-    <header>
-      <Navbar className="navbar-expand-sm navbar-toggleable-sm ng-white border-bottom box-shadow" container light>
-        <NavbarBrand tag={Link} to="/">AIOverflow</NavbarBrand>
-        <NavbarToggler onClick={toggleNavbar} className="mr-2" />
-        <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!state.collapsed} navbar>
-          <ul className="navbar-nav flex-grow">
-            <NavItem>
-              <NavLink tag={Link} className="text-dark" to="/">Home</NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink tag={Link} className="text-dark" to="/weatherForecast">Weather</NavLink>
-            </NavItem>
-          </ul>
-        </Collapse>
-      </Navbar>
-    </header>
-  )
+        <LoginModal
+          isOpen={this.state.isLoginModalOpen}
+          toggle={this.toggleLoginModal}
+          onLogin={() => console.log('Login completed')}
+          onRegister={() => console.log('Registration completed')} />
+      </header>
+    )
+  }
 }

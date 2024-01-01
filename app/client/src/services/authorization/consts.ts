@@ -6,7 +6,6 @@ export const QueryParameterNames = {
 };
 
 export const ApplicationPaths = {
-  ApiAuthorizationClientConfigurationUrl: `_configuration/${ApplicationName}`,
-  IdentityRegisterPath: 'Identity/Account/Register',
-  IdentityManagePath: 'Identity/Account/Manage'
+  IdentityRegisterPath: 'identity/register',
+  IdentityManagePath: 'identity/Account/Manage'
 };

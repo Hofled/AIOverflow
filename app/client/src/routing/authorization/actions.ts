@@ -1,6 +1,5 @@
 export enum LoginActions {
     Login = 'login',
-    LoginCallback = 'login-callback',
     LoginFailed = 'login-failed',
     Profile = 'profile',
     Register = 'register'
