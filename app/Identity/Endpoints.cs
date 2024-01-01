@@ -9,8 +9,9 @@ public static class Endpoints
 {
     public static void ConfigureIdentity(WebApplication app)
     {
+        var group = app.MapGroup("identity");
 
-        app.MapGet("/register", async (
+        group.MapGet("/register", async (
             string username,
             string password,
             IPasswordHasher<User> passwordHasher,
@@ -34,7 +35,7 @@ public static class Endpoints
             await ctx.SignInAsync(scheme, user.ToClaimsPrincipal(scheme));
         });
 
-        app.MapGet("/login", async (
+        group.MapGet("/login", async (
             string username,
             string password,
             IPasswordHasher<User> passwordHasher,
@@ -62,7 +63,24 @@ public static class Endpoints
             return "Login successful";
         });
 
-        app.MapGet("/assignAdmin", async (
+        group.MapGet("/isAuthenticated", (
+                    string username,
+                    HttpContext ctx
+                ) =>
+                {
+                    var userIdentity = ctx.User.Identity;
+                    if (userIdentity == null)
+                    {
+                        ctx.Response.StatusCode = StatusCodes.Status404NotFound;
+                        return false;
+                    }
+                    
+                    return userIdentity?.IsAuthenticated;
+                });
+
+        // ctx.User.Identity.IsAuthenticated
+
+        group.MapGet("/assignAdmin", async (
             string username,
             PostgresDb db,
             HttpContext ctx
