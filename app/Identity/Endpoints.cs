@@ -28,11 +28,12 @@ public static class Endpoints
             catch (Exception e)
             {
                 ctx.Response.StatusCode = StatusCodes.Status409Conflict;
-                return;
+                return "Username already taken";
             }
 
             var scheme = CookieAuthenticationDefaults.AuthenticationScheme;
             await ctx.SignInAsync(scheme, user.ToClaimsPrincipal(scheme));
+            return "Successfully registered & logged in";
         });
 
         group.MapGet("/login", async (
@@ -64,7 +65,7 @@ public static class Endpoints
         });
 
         group.MapGet("/isAuthenticated", (
-                    string username,
+                    SignInManager<User> signInManager,
                     HttpContext ctx
                 ) =>
                 {
@@ -74,11 +75,8 @@ public static class Endpoints
                         ctx.Response.StatusCode = StatusCodes.Status404NotFound;
                         return false;
                     }
-                    
                     return userIdentity?.IsAuthenticated;
                 });
-
-        // ctx.User.Identity.IsAuthenticated
 
         group.MapGet("/assignAdmin", async (
             string username,
