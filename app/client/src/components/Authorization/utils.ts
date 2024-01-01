@@ -1,4 +1,4 @@
-import { QueryParameterNames } from "../../services/authorization/consts";
+import { QueryParameterNames } from "../../services/auth/consts";
 
 export const getReturnUrl = (fallbackRoute: string, state?: any): string => {
     if (state) {

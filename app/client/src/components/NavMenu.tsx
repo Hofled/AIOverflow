@@ -1,12 +1,16 @@
-import { Component, useReducer } from 'react';
+import { Component } from 'react';
 import { Button, Collapse, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import './NavMenu.css';
 import LoginModal from './Authorization/Login/LoginModal';
+import Avatar from './Avatar/Avatar';
+import authService from '../services/auth/service';
 
 interface State {
   collapsed: boolean
   isLoginModalOpen: boolean
+  loggedIn: boolean // TODO move to store
+  username?: string // TODO move to store
 }
 
 export default class NavMenu extends Component<{}, State> {
@@ -16,7 +20,12 @@ export default class NavMenu extends Component<{}, State> {
     this.state = {
       collapsed: true,
       isLoginModalOpen: false,
+      loggedIn: false
     };
+  }
+
+  async componentDidMount() {
+    this.setState({ loggedIn: await authService.isAuthenticated() });
   }
 
   toggleLoginModal = () => {
@@ -34,12 +43,15 @@ export default class NavMenu extends Component<{}, State> {
               <NavItem>
                 <NavLink tag={Link} className="text-dark" to="/">Home</NavLink>
               </NavItem>
-              <NavItem>
-                <NavLink tag={Link} className="text-dark" to="/weatherForecast">Weather</NavLink>
-              </NavItem>
-              <NavItem>
-                <Button color="primary" className="text-dark" onClick={this.toggleLoginModal}>Login</Button>
-              </NavItem>
+              {
+                <NavItem>
+                  {
+                    !this.state.loggedIn ?
+                      <Button color="primary" className="text-dark" onClick={this.toggleLoginModal}>Login</Button>
+                      : <Avatar username={this.state.username || ""} size='md' />
+                  }
+                </NavItem>
+              }
             </ul>
           </Collapse>
         </Navbar>
@@ -47,8 +59,8 @@ export default class NavMenu extends Component<{}, State> {
         <LoginModal
           isOpen={this.state.isLoginModalOpen}
           toggle={this.toggleLoginModal}
-          onLogin={() => console.log('Login completed')}
-          onRegister={() => console.log('Registration completed')} />
+          onLogin={username => this.setState({ loggedIn: true, username })}
+          onRegister={username => this.setState({ loggedIn: true, username })} />
       </header>
     )
   }

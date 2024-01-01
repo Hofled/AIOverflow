@@ -1,20 +1,23 @@
 import { Component, ChangeEvent, FormEvent } from 'react';
-import { Button, Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input } from 'reactstrap';
-import authService from '../../../services/authorization/service';
-import { AuthenticationResultStatus } from '../../../services/authorization/models';
+import { Button, Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input, Alert, ModalFooter } from 'reactstrap';
+import authService from '../../../services/auth/service';
+import { AuthResultStatus } from '../../../services/auth/models';
 
 // Define the LoginProps interface
 interface LoginProps {
   isOpen: boolean;
   toggle: () => void;
-  onLogin?: () => void;
-  onRegister?: () => void;
+  onLogin?: (username: string) => void;
+  onRegister?: (username: string) => void;
 }
 
 // Define the LoginState interface
 interface LoginState {
   username: string;
   password: string;
+  error?: string;
+  loggedIn: boolean;
+  successMessage?: string;
 }
 
 // Define the Login component as a class component
@@ -24,6 +27,7 @@ class Login extends Component<LoginProps, LoginState> {
     this.state = {
       username: '',
       password: '',
+      loggedIn: false
     };
   }
 
@@ -40,24 +44,35 @@ class Login extends Component<LoginProps, LoginState> {
   handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     const { username, password } = this.state;
-    let result = await authService.signIn(username, password);
+    const result = await authService.login(username, password);
     switch (result.status) {
-      case AuthenticationResultStatus.Success:
-        this.props.onLogin && this.props.onLogin();
+      case AuthResultStatus.Success:
+        this.setState({ error: undefined, loggedIn: true, successMessage: result.message });
+        this.props.onLogin && this.props.onLogin(this.state.username);
         break;
-      case AuthenticationResultStatus.Fail:
-        // TODO handle failed authentication, display error text
+      case AuthResultStatus.Fail:
+        this.setState({ error: result.message, loggedIn: false });
         break;
       default:
-        console.error("Unrecognized authentication result");
+        this.setState({ error: "Unrecognized authentication result", loggedIn: false });
         break;
     }
-
   };
 
-  handleRegister = () => {
-    this.props.onRegister && this.props.onRegister();
+  handleRegister = async () => {
+    const result = await authService.register(this.state.username, this.state.password);
+    if (result.status != AuthResultStatus.Success) {
+      this.setState({ error: result.message, loggedIn: false });
+      return;
+    }
+    this.props.onRegister && this.props.onRegister(this.state.username);
   };
+
+  getFooterContent = (): React.ReactElement => {
+    if (this.state.error) { return <Alert color="danger">{this.state.error}</Alert> }
+    else if (this.state.loggedIn && this.state.successMessage) { return <Alert color="success">{this.state.successMessage}</Alert> }
+    return <></>;
+  }
 
   render() {
     const { isOpen, toggle } = this.props;
@@ -98,6 +113,7 @@ class Login extends Component<LoginProps, LoginState> {
             </Button>
           </Form>
         </ModalBody>
+        {this.getFooterContent()}
       </Modal>
     );
   }

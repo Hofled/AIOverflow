@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { Navigate } from "react-router-dom";
 import { LoginActions } from "../../routing/authorization/actions";
-import { QueryParameterNames } from "../../services/authorization/consts";
-import authService from "../../services/authorization/service";
+import { QueryParameterNames } from "../../services/auth/consts";
+import authService from "../../services/auth/service";
 import LoginModal from "./Login/LoginModal";
 
 type Props = { role?: string, path: string, element: React.JSX.Element }

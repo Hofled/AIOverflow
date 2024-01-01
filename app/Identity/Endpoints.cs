@@ -65,7 +65,6 @@ public static class Endpoints
         });
 
         group.MapGet("/isAuthenticated", (
-                    SignInManager<User> signInManager,
                     HttpContext ctx
                 ) =>
                 {
