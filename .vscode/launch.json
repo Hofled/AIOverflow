@@ -16,7 +16,8 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "ASPNETCORE_APPLICATIONNAME": "AIOverflow"
+                "ASPNETCORE_APPLICATIONNAME": "AIOverflow",
+                "SECRET_KEY": "MY_REALLY_LONG_SECRET_KEY"
             }
         },
         {

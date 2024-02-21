@@ -1,5 +1,10 @@
 {
     "version": "2.0.0",
+    "options": {
+        "env": {
+            "SECRET_KEY": "MY_REALLY_LONG_SECRET_KEY"
+        }
+    },
     "tasks": [
         {
             "label": "dotnet: run",
@@ -11,7 +16,7 @@
             ],
             "type": "process",
             "problemMatcher": "$msCompile"
-        },        
+        },
         {
             "label": "build",
             "command": "dotnet",
