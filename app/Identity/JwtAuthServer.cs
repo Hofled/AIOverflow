@@ -6,33 +6,35 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace JwtAuthenticationServer
 {
-    public class UserController : Controller
+    [ApiController]
+    [Route("[controller]")]
+    public class UserController : ControllerBase
     {
         private readonly string _secretKey;
 
         // Constructor with secretKey parameter
-        public UserController(string secretKey)
+        public UserController(JwtSecretKeyDependency secretKey)
         {
-            _secretKey = secretKey;
+            _secretKey = secretKey.SecretKey;
         }
 
         [HttpPost]
         [Route("register")]
-        public IActionResult Register([FromBody] RegisterRequest request)
+        public ActionResult<TokenResponse> Register([FromBody] RegisterRequest request)
         {
             // Implementation for user registration
             var token = GenerateToken(request.Username, _secretKey);
-            return Ok(new TokenResponse { Token = token });
+            return new TokenResponse { Token = token };
         }
 
         [HttpPost]
         [Route("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public ActionResult<TokenResponse> Login([FromBody] LoginRequest request)
         {
             if (IsValidUser(request.Username, request.Password))
             {
                 var token = GenerateToken(request.Username, _secretKey);
-                return Ok(new TokenResponse { Token = token });
+                return new TokenResponse { Token = token };
             }
 
             return Unauthorized();
@@ -73,18 +75,18 @@ namespace JwtAuthenticationServer
 
     public class RegisterRequest
     {
-        public required string Username { get; set; }
-        public required string Password { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
     }
 
     public class LoginRequest
     {
-        public required string Username { get; set; }
-        public required string Password { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
     }
 
     public class TokenResponse
     {
-        public required string Token { get; set; }
+        public string Token { get; set; }
     }
 }
