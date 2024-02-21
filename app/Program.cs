@@ -1,9 +1,10 @@
 using AIOverflow.Database;
+using Duende.IdentityServer.Extensions;
 using JwtAuthenticationServer;
 using Microsoft.EntityFrameworkCore;
 
 string? secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
-if (secretKey == null)
+if (string.IsNullOrEmpty(secretKey))
 {
     throw new Exception("SECRET_KEY is null");
 }
@@ -12,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole();
 
-builder.Services.AddSingleton<UserController>(new UserController(secretKey));
+builder.Services.AddSingleton(_ => new JwtSecretKeyDependency(secretKey));
 builder.Services.AddControllers();
 
 AIOverflow.Identity.Services.ConfigureServices(builder, secretKey);
@@ -25,7 +26,6 @@ app.MapFallbackToFile("index.html");
 UseAppMiddlewares(app);
 
 app.Logger.LogInformation("Starting web server");
-app.Logger.LogDebug("Secret key: " + secretKey); // TODO remove for debug only
 app.Run();
 
 static void AddDbContext(WebApplicationBuilder builder)
