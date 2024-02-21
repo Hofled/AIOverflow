@@ -1,5 +1,5 @@
 import { Component, ChangeEvent, FormEvent } from 'react';
-import { Button, Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input, Alert, ModalFooter } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input, Alert, ModalFooter, Container, Row } from 'reactstrap';
 import authService from '../../../services/auth/service';
 import { AuthResultStatus } from '../../../services/auth/models';
 
@@ -105,12 +105,16 @@ class Login extends Component<LoginProps, LoginState> {
                 onChange={this.handlePasswordChange}
               />
             </FormGroup>
-            <Button color="primary" type="submit">
-              Login
-            </Button>
-            <Button color="secondary" onClick={this.handleRegister}>
-              Register
-            </Button>
+            <Container>
+              <Row>
+                <Button color="primary" type="submit">
+                  Login
+                </Button>
+                <Button color="secondary" onClick={this.handleRegister}>
+                  Register
+                </Button>
+              </Row>
+            </Container>
           </Form>
         </ModalBody>
         {this.getFooterContent()}
