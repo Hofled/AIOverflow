@@ -1,22 +1,24 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AIOverflow.Identity;
 
 public static class Services
 {
-    public static void ConfigureServices(WebApplicationBuilder builder)
+    public static void ConfigureServices(WebApplicationBuilder builder, string secretKey)
     {
-        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                        .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
-        builder.Services.AddAuthorization(builder =>
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            builder.AddPolicy("admin", policy => policy
-            .RequireAuthenticatedUser()
-            .AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme)
-            .RequireClaim("role", "admin"));
-        });
-
-        builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+        };
+    });
     }
 }

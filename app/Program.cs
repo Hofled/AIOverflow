@@ -1,19 +1,31 @@
 using AIOverflow.Database;
+using JwtAuthenticationServer;
 using Microsoft.EntityFrameworkCore;
+
+string? secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
+if (secretKey == null)
+{
+    throw new Exception("SECRET_KEY is null");
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole();
-AIOverflow.Identity.Services.ConfigureServices(builder);
-AddDbContext(builder);
+
+builder.Services.AddSingleton<UserController>(new UserController(secretKey));
+builder.Services.AddControllers();
+
+AIOverflow.Identity.Services.ConfigureServices(builder, secretKey);
+// AddDbContext(builder);
 
 var app = builder.Build();
 app.MapFallbackToFile("index.html");
 
-AIOverflow.Identity.Endpoints.ConfigureIdentity(app);
+// AIOverflow.Identity.Endpoints.ConfigureIdentity(app);
 UseAppMiddlewares(app);
 
 app.Logger.LogInformation("Starting web server");
+app.Logger.LogDebug("Secret key: " + secretKey); // TODO remove for debug only
 app.Run();
 
 static void AddDbContext(WebApplicationBuilder builder)
@@ -40,6 +52,12 @@ static void UseAppMiddlewares(WebApplication app)
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseHttpLogging();
+
+    app.UseRouting();
+
     app.UseAuthentication();
     app.UseAuthorization();
+
+    // implicitly configures the REST API endpoints from the controllers
+    app.MapControllers();
 }
