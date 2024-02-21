@@ -19,13 +19,14 @@ public class PostgresDb : DbContext
 
     public async Task<int> AddUserAsync(User user)
     {
-        var existingUser = await Users.FirstOrDefaultAsync(u => u.Name == user.Name);
-        if (existingUser != null)
-        {
-            throw new Exception($"User {user.Name} already exists");
-        }
+        user.Claims.Add(new UserClaim { Type = "username", Value = user.Name });
         await Users.AddAsync(user);
         return await SaveChangesAsync();
+    }
+
+    public bool UserExists(string name)
+    {
+        return Users.Any(u => u.Name == name);
     }
 
     public List<User> GetUsers()

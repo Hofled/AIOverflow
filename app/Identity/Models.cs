@@ -9,11 +9,11 @@ public class User
     public string PasswordHash { get; set; }
     public HashSet<UserClaim> Claims { get; set; } = new HashSet<UserClaim>();
 
-    public ClaimsPrincipal ToClaimsPrincipal(string? authenticationType)
+    public Claim[] ToClaimsArray()
     {
         var claims = new HashSet<Claim>() { new Claim("username", Name) };
         claims.UnionWith(Claims.Select(c => new Claim(c.Type, c.Value)));
-        return new ClaimsPrincipal(new ClaimsIdentity(claims, authenticationType));
+        return claims.ToArray();
     }
 }
 

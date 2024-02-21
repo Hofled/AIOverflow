@@ -1,6 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AIOverflow.Database;
+using AIOverflow.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -11,60 +14,68 @@ namespace JwtAuthenticationServer
     public class UserController : ControllerBase
     {
         private readonly string _secretKey;
+        private readonly PostgresDb _db;
+        private readonly IPasswordHasher<User> _passwordHasher;
 
-        // Constructor with secretKey parameter
-        public UserController(JwtSecretKeyDependency secretKey)
+        public UserController(JwtSecretKeyDependency secretKey, PostgresDb db, IPasswordHasher<User> passwordHasher)
         {
             _secretKey = secretKey.SecretKey;
+            _db = db;
+            _passwordHasher = passwordHasher;
         }
 
         [HttpPost]
         [Route("register")]
-        public ActionResult<TokenResponse> Register([FromBody] RegisterRequest request)
+        public async Task<ActionResult<TokenResponse>> RegisterAsync([FromBody] RegisterRequest request)
         {
-            // Implementation for user registration
-            var token = GenerateToken(request.Username, _secretKey);
+            if (_db.UserExists(request.Username))
+            {
+                return Conflict($"The username {request.Username} already exists");
+            }
+
+            var user = new User { Name = request.Username };
+
+            var hashedPassword = _passwordHasher.HashPassword(user, request.Password);
+            user.PasswordHash = hashedPassword;
+
+            await _db.AddUserAsync(user);
+
+            var token = GenerateToken(user, _secretKey);
             return new TokenResponse { Token = token };
         }
 
         [HttpPost]
         [Route("login")]
-        public ActionResult<TokenResponse> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<TokenResponse>> LoginAsync([FromBody] LoginRequest request)
         {
-            if (IsValidUser(request.Username, request.Password))
+            var user = await _db.GetUserByNameAsync(request.Username);
+            if (user == null)
             {
-                var token = GenerateToken(request.Username, _secretKey);
+                return Unauthorized("Invalid credentials");
+            }
+
+            if (IsValidUser(user, request.Password, _passwordHasher))
+            {
+                var token = GenerateToken(user, _secretKey);
                 return new TokenResponse { Token = token };
             }
 
             return Unauthorized();
         }
 
-        [HttpPost]
-        [Route("logout")]
-        public IActionResult Logout()
+        private bool IsValidUser(User user, string password, IPasswordHasher<User> passwordHasher)
         {
-            // Implementation for user logout
-            return Ok("User logged out successfully");
+            return passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password) != PasswordVerificationResult.Failed;
         }
 
-        private bool IsValidUser(string username, string password) // TODO
-        {
-            // Simple validation. In a real-world application, this would involve database queries.
-            // return username == UserName && password == Password;
-            return true;
-        }
-
-        private string GenerateToken(string username, string secretKey)
+        private string GenerateToken(User user, string secretKey)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(secretKey);
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, username)
-                }),
+                Subject = new ClaimsIdentity(user.ToClaimsArray()),
                 Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };

@@ -1,6 +1,8 @@
 using AIOverflow.Database;
+using AIOverflow.Identity;
 using Duende.IdentityServer.Extensions;
 using JwtAuthenticationServer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 string? secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
@@ -14,15 +16,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddConsole();
 
 builder.Services.AddSingleton(_ => new JwtSecretKeyDependency(secretKey));
-builder.Services.AddControllers();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 AIOverflow.Identity.Services.ConfigureServices(builder, secretKey);
-// AddDbContext(builder);
+AddDbContext(builder);
+
+builder.Services.AddControllers();
 
 var app = builder.Build();
 app.MapFallbackToFile("index.html");
 
-// AIOverflow.Identity.Endpoints.ConfigureIdentity(app);
 UseAppMiddlewares(app);
 
 app.Logger.LogInformation("Starting web server");
@@ -30,11 +33,11 @@ app.Run();
 
 static void AddDbContext(WebApplicationBuilder builder)
 {
-    string? DbConnectionString = Environment.GetEnvironmentVariable("ConnectionString");
+    string? DbConnectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
 
-    if (DbConnectionString == null)
+    if (string.IsNullOrEmpty(DbConnectionString))
     {
-        throw new Exception("ConnectionString is null");
+        throw new Exception("CONNECTION_STRING is null");
     }
 
     builder.Services.AddDbContext<PostgresDb>(options => options.UseNpgsql(DbConnectionString));
