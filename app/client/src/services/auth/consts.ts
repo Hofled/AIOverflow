@@ -1,6 +1,6 @@
 export let ApplicationName: string = process.env.APPLICATION_NAME || "AIOverflow";
 
-const identityPrefix = "identity";
+const authPrefix = "user";
 
 export const QueryParameterNames = {
   ReturnUrl: 'returnUrl',
@@ -8,9 +8,9 @@ export const QueryParameterNames = {
 };
 
 export const IdentityPaths = {
-  Register: `${identityPrefix}/register`,
-  Login: `${identityPrefix}/login`,
-  IsAuthenticated: `${identityPrefix}/isAuthenticated`,
+  Register: `${authPrefix}/register`,
+  Login: `${authPrefix}/login`,
+  IsAuthenticated: `${authPrefix}/isAuthenticated`,
 };
 
 export const DefaultGetTimeoutMs = 10000;
