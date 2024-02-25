@@ -19,7 +19,6 @@ public class PostgresDb : DbContext
 
     public async Task<int> AddUserAsync(User user)
     {
-        user.Claims.Add(new UserClaim { Type = "username", Value = user.Name });
         await Users.AddAsync(user);
         return await SaveChangesAsync();
     }
