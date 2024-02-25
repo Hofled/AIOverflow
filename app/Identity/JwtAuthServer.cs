@@ -33,14 +33,14 @@ namespace JwtAuthenticationServer
                 return Conflict($"The username {request.Username} already exists");
             }
 
-            var user = new User { Name = request.Username };
+            var user = new User { Name = request.Username, Claims = { new UserClaim { Type = ClaimTypes.NameIdentifier, Value = request.Username } } };
 
             var hashedPassword = _passwordHasher.HashPassword(user, request.Password);
             user.PasswordHash = hashedPassword;
 
             await _db.AddUserAsync(user);
 
-            var token = GenerateToken(user, _secretKey);
+            var token = GenerateUserToken(user, _secretKey);
             return new TokenResponse { Token = token };
         }
 
@@ -56,7 +56,7 @@ namespace JwtAuthenticationServer
 
             if (IsValidUser(user, request.Password, _passwordHasher))
             {
-                var token = GenerateToken(user, _secretKey);
+                var token = GenerateUserToken(user, _secretKey);
                 return new TokenResponse { Token = token };
             }
 
@@ -68,7 +68,7 @@ namespace JwtAuthenticationServer
             return passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password) != PasswordVerificationResult.Failed;
         }
 
-        private string GenerateToken(User user, string secretKey)
+        private string GenerateUserToken(User user, string secretKey)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(secretKey);
