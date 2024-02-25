@@ -11,9 +11,7 @@ public class User
 
     public Claim[] ToClaimsArray()
     {
-        var claims = new HashSet<Claim>() { new Claim("username", Name) };
-        claims.UnionWith(Claims.Select(c => new Claim(c.Type, c.Value)));
-        return claims.ToArray();
+        return Claims.Select(c => new Claim(c.Type, c.Value)).ToArray();
     }
 }
 
