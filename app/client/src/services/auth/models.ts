@@ -1,6 +1,6 @@
-export interface OperationStatus {
+export interface OperationStatus<T> {
     status: AuthResultStatus
-    message?: string
+    result?: T
 }
 
 export enum AuthResultStatus {

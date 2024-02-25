@@ -5,6 +5,7 @@ import './NavMenu.css';
 import LoginModal from './Authorization/Login/LoginModal';
 import Avatar from './Avatar/Avatar';
 import authService from '../services/auth/service';
+import { AuthResultStatus } from '../services/auth/models';
 
 interface State {
   collapsed: boolean
@@ -22,10 +23,22 @@ export default class NavMenu extends Component<{}, State> {
       isLoginModalOpen: false,
       loggedIn: false
     };
+
+    authService.subscribe((authenticated) => this.setState({ loggedIn: authenticated }));
   }
 
   async componentDidMount() {
-    this.setState({ loggedIn: await authService.isAuthenticated() });
+    let username: string | undefined;
+    const loggedIn = authService.isAuthenticated();
+    if (loggedIn) {
+      const result = await authService.getUserInfo();
+      switch (result.status) {
+        case AuthResultStatus.Success:
+          username = result?.result?.name;
+          break;
+      }
+    }
+    this.setState({ loggedIn: loggedIn, username: username });
   }
 
   toggleLoginModal = () => {

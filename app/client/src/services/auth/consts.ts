@@ -7,10 +7,11 @@ export const QueryParameterNames = {
   Message: 'message'
 };
 
-export const IdentityPaths = {
+export const UserPaths = {
   Register: `${authPrefix}/register`,
   Login: `${authPrefix}/login`,
-  IsAuthenticated: `${authPrefix}/isAuthenticated`,
+  IsAuthorized: `${authPrefix}/isAuthorized`,
+  Info: `${authPrefix}/info`,
 };
 
 export const DefaultGetTimeoutMs = 10000;

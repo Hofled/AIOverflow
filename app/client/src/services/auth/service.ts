@@ -1,55 +1,71 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosHeaders, AxiosRequestConfig, AxiosResponse, Method } from "axios";
 import { AuthResultStatus, OperationStatus } from "./models";
-import { DefaultGetTimeoutMs, IdentityPaths } from "./consts";
+import { DefaultGetTimeoutMs, UserPaths } from "./consts";
+import { UserInfo } from "../../models/user-info";
 
-type onAxiosSuccess = (response: AxiosResponse) => OperationStatus;
-type onAxiosError = (error: any, response?: AxiosResponse) => OperationStatus;
+type onAxiosSuccess<T, R> = (response: AxiosResponse<T>) => OperationStatus<R>;
+type onAxiosError = (error: any, response?: AxiosResponse) => OperationStatus<any>;
 
 export class AuthorizeService {
   private _callbacks: Map<number, (authenticated: boolean) => void> = new Map();
   private _nextSubscriptionId: number = 0;
 
-  constructor() {
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem('token');
   }
 
-  async isAuthenticated(): Promise<boolean> {
-    try {
-      const response: AxiosResponse = await axios.get(IdentityPaths.IsAuthenticated, this.createAxiosRequestConfig(null, {
-        withCredentials: true
-      }));
-
-      if (response.status != axios.HttpStatusCode.Ok) {
-        return false;
-      }
-
-      return response.data;
+  async getUserInfo(): Promise<OperationStatus<UserInfo | undefined>> {
+    const jwtToken = localStorage.getItem('token');
+    if (!jwtToken) {
+      return this.error();
     }
-    catch (error: any) {
-      return false;
-    }
+
+    return this.axiosRequest(UserPaths.Info, "GET", (r: AxiosResponse<UserInfo>) => this.success(r.data), (r) => this.error(r.data), null, new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}`}));
   }
 
-  // TODO implement
-  async isAuthorized(role: string): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async login(username: string, password: string): Promise<OperationStatus<string>> {
+    return this.axiosRequest(UserPaths.Login, "POST", this.loginSuccessCallback, this.loginErrorCallback, { username, password }, new AxiosHeaders({ "Content-Type": "application/json" }));
   }
 
-  async login(username: string, password: string): Promise<OperationStatus> {
-    return this.axiosGetRequest(IdentityPaths.Login, this.loginSuccessCallback, this.loginErrorCallback, { username, password });
+  logout() {
+    localStorage.removeItem('token');
+    this.notifySubscribers(false);
   }
 
   // registers a new user using the provided username and password and signs in
-  async register(username: string, password: string, state?: any): Promise<OperationStatus> {
-    return this.axiosGetRequest(IdentityPaths.Register, this.loginSuccessCallback, this.loginErrorCallback, { username, password });
+  async register(username: string, password: string, state?: any): Promise<OperationStatus<string>> {
+    return this.axiosRequest(UserPaths.Register, "POST", this.loginSuccessCallback, this.loginErrorCallback, { username, password }, new AxiosHeaders({ "Content-Type": "application/json" }));
   }
 
-  loginSuccessCallback: onAxiosSuccess = response => {
+  async checkRouteAuth(path: string): Promise<OperationStatus<boolean>> {
+    const jwtToken = localStorage.getItem('token');
+    if (!jwtToken) {
+      return this.error(false);
+    }
+
+    return this.axiosRequest(UserPaths.IsAuthorized, "POST", (r: AxiosResponse<boolean>) => this.success(r.data), (r) => this.error(r.data), { path },
+      new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}`, "Content-Type": "application/json" })
+    );
+  }
+
+  loginSuccessCallback: onAxiosSuccess<{ token: string }, string> = response => {
+    localStorage.setItem('token', response.data.token);
     this.notifySubscribers(true);
-    return this.success(response.data);
+    return this.success();
   }
 
   loginErrorCallback: onAxiosError = (error, response) => {
     return this.handleAxiosError(error);
+  }
+
+  handleAxiosError(error: any): OperationStatus<any> {
+    // Handle errors, log them, or throw them as needed
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<string>;
+      return this.error(axiosError.response?.data);
+    } else {
+      return this.error(error);
+    }
   }
 
   subscribe(callback: (authenticated: boolean) => void) {
@@ -68,19 +84,19 @@ export class AuthorizeService {
     }
   }
 
-  error(message?: string): OperationStatus {
-    return { status: AuthResultStatus.Fail, message };
+  error<T>(result?: T): OperationStatus<T> {
+    return { status: AuthResultStatus.Fail, result: result };
   }
 
-  success(message?: string): OperationStatus {
-    return { status: AuthResultStatus.Success, message };
+  success<T>(result?: T): OperationStatus<T> {
+    return { status: AuthResultStatus.Success, result: result };
   }
 
-  async axiosGetRequest(url: string, onSuccess: onAxiosSuccess, onError: onAxiosError, params?: any): Promise<OperationStatus> {
+  private async axiosRequest<T, R>(url: string, method: Method, onSuccess: onAxiosSuccess<T, R>, onError: onAxiosError, body?: any, headers?: AxiosHeaders): Promise<OperationStatus<R>> {
     try {
-      const response: AxiosResponse = await axios.get(url, this.createAxiosRequestConfig(params));
+      const response: AxiosResponse = await axios(this.createAxiosRequestConfig(url, method, body, { headers }));
 
-      if (response.status != axios.HttpStatusCode.Ok) {
+      if (response.status !== axios.HttpStatusCode.Ok) {
         return this.error(response.data);
       }
 
@@ -91,20 +107,12 @@ export class AuthorizeService {
     }
   }
 
-  handleAxiosError(error: any): OperationStatus {
-    // Handle errors, log them, or throw them as needed
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<string>;
-      return this.error(axiosError.response?.data);
-    } else {
-      return this.error(error);
-    }
-  }
-
-  createAxiosRequestConfig(params?: any, config?: AxiosRequestConfig): AxiosRequestConfig {
+  createAxiosRequestConfig(url: string, method: Method, body?: any, config?: AxiosRequestConfig): AxiosRequestConfig {
     return {
+      url: url,
+      method: method,
       timeout: DefaultGetTimeoutMs,
-      params: params,
+      data: body,
       ...config
     }
   }

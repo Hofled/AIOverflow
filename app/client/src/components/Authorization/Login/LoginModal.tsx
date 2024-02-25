@@ -47,11 +47,11 @@ class Login extends Component<LoginProps, LoginState> {
     const result = await authService.login(username, password);
     switch (result.status) {
       case AuthResultStatus.Success:
-        this.setState({ error: undefined, loggedIn: true, successMessage: result.message });
+        this.setState({ error: undefined, loggedIn: true });
         this.props.onLogin && this.props.onLogin(this.state.username);
         break;
       case AuthResultStatus.Fail:
-        this.setState({ error: result.message, loggedIn: false });
+        this.setState({ error: result.result, loggedIn: false });
         break;
       default:
         this.setState({ error: "Unrecognized authentication result", loggedIn: false });
@@ -61,8 +61,8 @@ class Login extends Component<LoginProps, LoginState> {
 
   handleRegister = async () => {
     const result = await authService.register(this.state.username, this.state.password);
-    if (result.status != AuthResultStatus.Success) {
-      this.setState({ error: result.message, loggedIn: false });
+    if (result.status !== AuthResultStatus.Success) {
+      this.setState({ error: result.result, loggedIn: false });
       return;
     }
     this.props.onRegister && this.props.onRegister(this.state.username);

@@ -63,6 +63,27 @@ namespace JwtAuthenticationServer
             return Unauthorized();
         }
 
+
+        [HttpGet]
+        [Route("info")]
+        public async Task<ActionResult<InfoResponse>> InfoAsync()
+        {
+            var userClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userClaim == null)
+            {
+                return Unauthorized();
+            }
+
+
+            var user = await _db.GetUserByNameAsync(userClaim.Value);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            return new InfoResponse { Name = user.Name };
+        }
+
         private bool IsValidUser(User user, string password, IPasswordHasher<User> passwordHasher)
         {
             return passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password) != PasswordVerificationResult.Failed;
@@ -94,6 +115,11 @@ namespace JwtAuthenticationServer
     {
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+
+    public class InfoResponse
+    {
+        public string Name { get; set; }
     }
 
     public class TokenResponse

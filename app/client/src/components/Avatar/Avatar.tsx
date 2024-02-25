@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Media } from 'reactstrap';
+import authService from '../../services/auth/service';
 import './Avatar.css';
 import { Link } from 'react-router-dom';
 
@@ -43,13 +44,13 @@ export default class Avatar extends Component<AvatarProps, AvatarState> {
                         </div>
                     </Media>
                 </DropdownToggle>
-                <DropdownMenu right>
+                <DropdownMenu end>
                     <DropdownItem header>{this.props.username}</DropdownItem>
                     <Link to="/profile">
                         <DropdownItem>Profile</DropdownItem>
                     </Link>
                     <DropdownItem divider />
-                    <DropdownItem onClick={() => console.log('Logout clicked')}>Logout</DropdownItem>
+                    <DropdownItem onClick={() => authService.logout()}>Logout</DropdownItem>
                 </DropdownMenu>
             </Dropdown>
         );
