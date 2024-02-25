@@ -11,6 +11,7 @@ services:
       - db
     environment:
       - ConnectionString=Host=db;Database=forumdb;Username=forumadmin;Password=securepassword
+      - SECRET_KEY=MY_REALLY_LONG_SECRET_KEY
     networks:
       - forum-network
     profiles:
