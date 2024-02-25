@@ -14,6 +14,7 @@ services:
       - ConnectionString=Host=db;Database=forumdb;Username=forumadmin;Password=securepassword
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_APPLICATIONNAME=AIOverflow
+      - SECRET_KEY=MY_REALLY_LONG_SECRET_KEY
     networks:
       - forum-network
 
