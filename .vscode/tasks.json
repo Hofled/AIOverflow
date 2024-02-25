@@ -2,7 +2,8 @@
     "version": "2.0.0",
     "options": {
         "env": {
-            "SECRET_KEY": "MY_REALLY_LONG_SECRET_KEY"
+            "SECRET_KEY": "MY_REALLY_LONG_SECRET_KEY",
+            "CONNECTION_STRING": "Host=localhost;Database=forumdb;Username=forumadmin;Password=securepassword"
         }
     },
     "tasks": [
