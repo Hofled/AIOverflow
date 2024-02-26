@@ -1,7 +1,5 @@
 using AIOverflow.Database;
 using AIOverflow.Identity;
-using Duende.IdentityServer.Extensions;
-using JwtAuthenticationServer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
