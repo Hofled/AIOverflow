@@ -2,8 +2,8 @@
 
 This project is the implementation of the "סדנה בתכנות מונחה עצמים - 20586" workshop.
 
-## Building The Application
-### Docker
+# Building The Application
+## Docker
 In order to run the application inside a Docker container, you need to first build the image for the application.
 The configuration for building the application image can be found in the [Dockerfile](./Dockerfile), which uses the `mcr.microsoft.com/dotnet/sdk:7.0` builder image for building the ASP.NET & React application and then [publishing](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish) it.
 
@@ -35,7 +35,7 @@ After the container is running, you can access the web application from `http://
 ## Debugging The Application
 ### Locally
 In order to debug the application's code, there's a VS Code [launch configuration](./.vscode/launch.json) and a VS Code [task](./.vscode/tasks.json) which allow to debug both the React web application and the ASP.NET server.
-### ASP.NET Server
+#### ASP.NET Server
 **Important**: There are .NET requirements for running & debugging the ASP.NET server locally, please make sure that everything required is installed properly, VS Code should prompt you automatically for installing all the requirements once the corresponding launch configurations run for the first time.
 <hr/>
 
@@ -44,8 +44,14 @@ This should start the ASP.NET process and run the server in development mode, to
 After the server is running, you need to run the launch configuration named `.NET Core Attach`, which will attach to the corresponding server process, and allow debugging the process and set breakpoints from the VS Code IDE.
 The corresponding process which needs to be attached may be filtered and found by typing `run` after launching the configuration, and a process named `<Application Name> run` should be present.
 
-### React Web Application
+#### React Web Application
 Once the ASP.NET server is running and serves the web application, you can attach to the Chrome browser in order to debug the React code from within VS Code.
 Launch the `Attach to Chrome` configuration, which expects the application to be served locally on port `44442`.
 
 If the application is hosted on a different port, please configure the port accordingly [here](./.vscode/launch.json#L27).
+
+### Docker Container
+It is possible to deploy a development docker container which will run the ASP.NET server with development configurations.
+The debugging process of such a container consists of 2 steps, running the container & attaching to the remote process inside the container for debugging through VS Code.
+In order to attach to the remote ASP.NET process, a [launch](./.vscode/launch.json) configuration has been created with the name `Docker .NET Attach`.
+Once the docker container is running, all you need to do is launch the configuration from VS Code and it will allow you to set breakpoints and debug the remote server process.

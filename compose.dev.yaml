@@ -1,0 +1,56 @@
+name: aioverflow-dev
+
+services:
+  web:
+    image: aioverflow-web:debug
+    build:
+      context: .
+      dockerfile: ./Dockerfile.dev.debug
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+    environment:
+      - ConnectionString=Host=db;Database=forumdb;Username=forumadmin;Password=securepassword
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_APPLICATIONNAME=AIOverflow
+      - SECRET_KEY=MY_REALLY_LONG_SECRET_KEY
+    networks:
+      - forum-network
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: forumdb
+      POSTGRES_USER: forumadmin
+      POSTGRES_PASSWORD: securepassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - forum-network
+    profiles:
+      ["debug"]
+
+  pgAdmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@email.com
+      PGADMIN_DEFAULT_PASSWORD: 123
+    ports:
+      - "8900:80"
+    depends_on:
+      - db
+    networks:
+      - forum-network
+    profiles:
+      ["debug"]
+
+volumes:
+  pgdata:
+
+networks:
+  forum-network:
+    driver: bridge

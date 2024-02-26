@@ -1,29 +1,64 @@
-var builder = WebApplication.CreateBuilder(args);
+using AIOverflow.Database;
+using AIOverflow.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
-// Add services to the container.
-
-var app = builder.Build();
-
-app.UseHttpLogging();
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+string? secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
+if (string.IsNullOrEmpty(secretKey))
 {
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    throw new Exception("SECRET_KEY is null");
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
+var builder = WebApplication.CreateBuilder(args);
 
-RegisterEndpoints(app);
+builder.Logging.AddConsole();
 
+builder.Services.AddSingleton(_ => new JwtSecretKeyDependency(secretKey));
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+AIOverflow.Identity.Services.ConfigureServices(builder, secretKey);
+AddDbContext(builder);
+
+builder.Services.AddControllers();
+
+var app = builder.Build();
 app.MapFallbackToFile("index.html");
 
+UseAppMiddlewares(app);
+
+app.Logger.LogInformation("Starting web server");
 app.Run();
 
-static void RegisterEndpoints(WebApplication app)
+static void AddDbContext(WebApplicationBuilder builder)
 {
-    WeatherEndpoint.Map(app);
+    string? DbConnectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+
+    if (string.IsNullOrEmpty(DbConnectionString))
+    {
+        throw new Exception("CONNECTION_STRING is null");
+    }
+
+    builder.Services.AddDbContext<PostgresDb>(options => options.UseNpgsql(DbConnectionString));
+}
+
+static void UseAppMiddlewares(WebApplication app)
+{
+    // Configure the HTTP request pipeline.
+    if (!app.Environment.IsDevelopment())
+    {
+        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+        app.UseHsts();
+    }
+
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
+    app.UseHttpLogging();
+
+    app.UseRouting();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    // implicitly configures the REST API endpoints from the controllers
+    app.MapControllers();
 }
