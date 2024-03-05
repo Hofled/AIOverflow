@@ -22,15 +22,3 @@ public class UserClaim
     public string Value { get; set; }
 }
 
-public class Post
-{
-    public int Id { get; set; }
-    public string Title { get; set; }
-    public string Content { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-    public int UserId { get; set; } // Assuming each post is linked to a user
-
-    // Navigation properties
-    public User User { get; set; }
-}

@@ -3,6 +3,7 @@ using System;
 using AIOverflow.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AIOverflow.Migrations
 {
     [DbContext(typeof(PostgresDb))]
-    partial class PostgresDbModelSnapshot : ModelSnapshot
+    [Migration("20240303220353_ChangedPostsStructure1")]
+    partial class ChangedPostsStructure1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
