@@ -16,6 +16,6 @@ namespace AIOverflow.Models.Posts
 
         // Navigation property
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public User Author { get; set; }
     }
 }
