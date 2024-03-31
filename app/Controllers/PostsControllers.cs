@@ -22,7 +22,7 @@ namespace AIOverflow.Controllers.Posts
         public async Task<ActionResult<List<Post>>> GetPostsAsync()
         {
             var posts = await _db.Posts.Include(p => p.Author).ToListAsync();
-            return posts; // Explicitly returning Ok() with the data
+            return posts;
         }
 
         // GET: posts/{id}
@@ -54,8 +54,6 @@ namespace AIOverflow.Controllers.Posts
             await _db.Posts.AddAsync(newPost);
             await _db.SaveChangesAsync();
 
-            // Using nameof to ensure the correct action method is referenced
-            // and providing a route value that matches the parameter name and type of the action method intended for redirection.
             return CreatedAtAction("GetPostById", new { id = newPost.Id }, newPost);
         }
 
