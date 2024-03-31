@@ -77,12 +77,12 @@ public class PostgresDb : DbContext
 
     public async Task<List<Post>> GetAllPostsAsync()
     {
-        return await Posts.Include(p => p.User).ToListAsync();
+        return await Posts.Include(p => p.Author).ToListAsync();
     }
 
     public async Task<Post?> GetPostByIdAsync(int id)
     {
-        return await Posts.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
+        return await Posts.Include(p => p.Author).FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<int> UpdatePostAsync(Post updatedPost)
