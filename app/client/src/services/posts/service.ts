@@ -4,7 +4,11 @@ import { Post } from "./models";
 
 class PostsService {
     async getPosts(): Promise<OperationStatus<Post[]>> {
-        return axiosRequest<Post[], any>("posts", "GET", (r: AxiosResponse<Post[]>) => wrapSuccess(r.data), (r) => wrapFail(r));
+        return axiosRequest<Post[], any>("/posts/", "GET", (r: AxiosResponse<Post[]>) => wrapSuccess(r.data), (r) => wrapFail(r));
+    }
+
+    async getPost(postId: number): Promise<OperationStatus<Post>> {
+        return axiosRequest<Post, any>(`/posts/${postId}`, "GET", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r));
     }
 }
 
