@@ -69,23 +69,23 @@ public class PostgresDb : DbContext
 
 
     //Posts Methods
-        public async Task<int> AddPostAsync(Post post)
+    public async Task<int> AddPostAsync(Post post)
     {
         await Posts.AddAsync(post);
         return await SaveChangesAsync();
     }
 
-        public async Task<List<Post>> GetAllPostsAsync()
+    public async Task<List<Post>> GetAllPostsAsync()
     {
         return await Posts.Include(p => p.User).ToListAsync();
     }
-    
-        public async Task<Post?> GetPostByIdAsync(int id)
+
+    public async Task<Post?> GetPostByIdAsync(int id)
     {
         return await Posts.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
     }
 
-        public async Task<int> UpdatePostAsync(Post updatedPost)
+    public async Task<int> UpdatePostAsync(Post updatedPost)
     {
         var existingPost = await Posts.FirstOrDefaultAsync(p => p.Id == updatedPost.Id);
         if (existingPost != null)
@@ -97,7 +97,7 @@ public class PostgresDb : DbContext
         return 0; // Or handle this scenario as you see fit
     }
 
-        public async Task<int> DeletePostAsync(int id)
+    public async Task<int> DeletePostAsync(int id)
     {
         var post = await Posts.FindAsync(id);
         if (post != null)
