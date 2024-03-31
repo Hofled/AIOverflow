@@ -1,0 +1,1 @@
+export const DefaultGetTimeoutMs = 10000;
