@@ -19,6 +19,7 @@ class PostsPage extends Component<PostsPageProps> {
                             <Col md="4" key={post.id}>
                                 <PostCard
                                     key={post.id}
+                                    userId={post.userId}
                                     author={post.author}
                                     content={post.content}
                                     createdAt={post.createdAt}

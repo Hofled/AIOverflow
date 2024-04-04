@@ -53,7 +53,7 @@ public class PostgresDb : DbContext
 
     public async Task<int> UpdateUserAsync(User updatedUser)
     {
-        Entry(updatedUser).CurrentValues.SetValues(updatedUser);
+        Users.Update(updatedUser);
         return await SaveChangesAsync();
     }
 
@@ -87,14 +87,8 @@ public class PostgresDb : DbContext
 
     public async Task<int> UpdatePostAsync(Post updatedPost)
     {
-        var existingPost = await Posts.FirstOrDefaultAsync(p => p.Id == updatedPost.Id);
-        if (existingPost != null)
-        {
-            // Assuming you want to update all properties. Adjust as necessary.
-            Entry(existingPost).CurrentValues.SetValues(updatedPost);
-            return await SaveChangesAsync();
-        }
-        return 0; // Or handle this scenario as you see fit
+        Posts.Update(updatedPost);
+        return await SaveChangesAsync();
     }
 
     public async Task<int> DeletePostAsync(int id)

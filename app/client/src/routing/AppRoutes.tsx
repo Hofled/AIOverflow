@@ -7,6 +7,7 @@ import Weather from "../components/Weather/Weather";
 import PostsContainer from "../components/Posts/PostsContainer";
 import Post from "../components/Posts/Post/Post";
 import { postLoader } from "../components/Posts/Post/loader";
+import postsService from "../services/posts/service";
 
 const router = createBrowserRouter([
   {
@@ -25,7 +26,7 @@ const router = createBrowserRouter([
         path: "allPosts", Component: PostsContainer,
       },
       {
-        path: "post/:postId", element: <Post />, loader: postLoader,
+        path: "post/:postId", element: <Post updatePost={postsService.updatePost} />, loader: postLoader,
       }
     ],
   },

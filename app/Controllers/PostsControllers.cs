@@ -1,8 +1,7 @@
-using AIOverflow.Database;
 using Microsoft.AspNetCore.Mvc;
 using AIOverflow.Models.Posts;
-using Microsoft.EntityFrameworkCore;
 using AIOverflow.DTOs;
+using AIOverflow.Services.Posts;
 
 namespace AIOverflow.Controllers.Posts
 {
@@ -10,26 +9,25 @@ namespace AIOverflow.Controllers.Posts
     [Route("[controller]")] // Ensures the route matches the controller name
     public class PostsController : ControllerBase
     {
-        private readonly PostgresDb _db;
+        private readonly IPostService _postService;
 
-        public PostsController(PostgresDb db)
+        public PostsController(IPostService postService)
         {
-            _db = db;
+            _postService = postService;
         }
 
         // GET: posts
         [HttpGet("")]
         public async Task<ActionResult<List<Post>>> GetPostsAsync()
         {
-            var posts = await _db.Posts.Include(p => p.Author).ToListAsync();
-            return posts;
+            return await _postService.GetAllPostsAsync();
         }
 
         // GET: posts/{id}
         [HttpGet("{id:int}")] // Specify the type of id to reinforce route matching
         public async Task<ActionResult<Post>> GetPostByIdAsync(int id)
         {
-            var post = await _db.Posts.Include(p => p.Author).FirstOrDefaultAsync(p => p.Id == id);
+            var post = await _postService.GetPostByIdAsync(id);
             if (post == null)
             {
                 return NotFound();
@@ -41,19 +39,7 @@ namespace AIOverflow.Controllers.Posts
         [HttpPost("")]
         public async Task<ActionResult<Post>> CreatePostAsync([FromBody] PostCreateDto postDto)
         {
-            var now = DateTime.UtcNow;
-            var newPost = new Post
-            {
-                Title = postDto.Title,
-                Content = postDto.Content,
-                UserId = postDto.UserId,
-                CreatedAt = now,
-                EditedAt = now
-            };
-
-            await _db.Posts.AddAsync(newPost);
-            await _db.SaveChangesAsync();
-
+            var newPost = await _postService.AddPostAsync(postDto);
             return CreatedAtAction("GetPostById", new { id = newPost.Id }, newPost);
         }
 
@@ -61,28 +47,23 @@ namespace AIOverflow.Controllers.Posts
         [HttpPut("{id:int}")]
         public async Task<ActionResult<Post>> UpdatePostAsync(int id, [FromBody] Post updatedPost)
         {
-            if (id != updatedPost.Id)
-            {
-                return BadRequest();
-            }
-
-            await _db.UpdatePostAsync(updatedPost);
-            _db.Entry(updatedPost).State = EntityState.Modified;
-
             try
             {
-                await _db.SaveChangesAsync();
+                await _postService.UpdatePostAsync(id, updatedPost);
             }
-            catch (DbUpdateConcurrencyException)
+
+            catch (BadHttpRequestException e)
             {
-                if (!PostExists(id))
+                return BadRequest(e.Message);
+            }
+            catch (Exception e)
+            {
+                if (!String.IsNullOrEmpty(e.Message))
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent(); // Consider returning NoContent for PUT as per RESTful conventions
@@ -92,21 +73,16 @@ namespace AIOverflow.Controllers.Posts
         [HttpDelete("{id:int}")] // Specify the type of id to reinforce route matching
         public async Task<IActionResult> DeletePostAsync(int id)
         {
-            var post = await _db.Posts.FindAsync(id);
-            if (post == null)
+            try
+            {
+                await _postService.DeletePostAsync(id);
+            }
+            catch (Exception)
             {
                 return NotFound();
             }
 
-            _db.Posts.Remove(post);
-            await _db.SaveChangesAsync();
-
             return NoContent(); // Returning NoContent as per RESTful conventions
-        }
-
-        private bool PostExists(int id)
-        {
-            return _db.Posts.Any(e => e.Id == id);
         }
     }
 }

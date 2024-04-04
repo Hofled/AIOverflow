@@ -8,7 +8,7 @@ async function axiosRequest<T, R>(url: string, method: Method, onSuccess: onAxio
     try {
         const response: AxiosResponse = await axios(createAxiosRequestConfig(url, method, body, { headers }));
 
-        if (response.status !== axios.HttpStatusCode.Ok) {
+        if (response.status >= axios.HttpStatusCode.BadRequest) {
             return onError(response.data, response);
         }
 
