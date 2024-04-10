@@ -44,6 +44,15 @@ This should start the ASP.NET process and run the server in development mode, to
 After the server is running, you need to run the launch configuration named `.NET Core Attach`, which will attach to the corresponding server process, and allow debugging the process and set breakpoints from the VS Code IDE.
 The corresponding process which needs to be attached may be filtered and found by typing `run` after launching the configuration, and a process named `<Application Name> run` should be present.
 
+### Database
+In order to run the database container (and if you would like also `pgAdmin`), you can run the following command:
+
+```shell
+docker compose -f <path to development compose file> up db pgAdmin
+```
+
+This will start the db and `pgAdmin` containers.
+
 #### React Web Application
 Once the ASP.NET server is running and serves the web application, you can attach to the Chrome browser in order to debug the React code from within VS Code.
 Launch the `Attach to Chrome` configuration, which expects the application to be served locally on port `44442`.
