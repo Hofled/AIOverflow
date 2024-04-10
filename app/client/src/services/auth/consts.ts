@@ -6,5 +6,3 @@ export const UserPaths = {
   IsAuthorized: `${authPrefix}/isAuthorized`,
   Info: `${authPrefix}/info`,
 };
-
-export const DefaultGetTimeoutMs = 10000;

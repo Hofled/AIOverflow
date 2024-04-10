@@ -5,7 +5,7 @@ import './NavMenu.css';
 import LoginModal from './Authorization/Login/LoginModal';
 import Avatar from './Avatar/Avatar';
 import authService from '../services/auth/service';
-import { AuthResultStatus } from '../services/auth/models';
+import { Status } from '../services/axios';
 
 interface State {
   collapsed: boolean
@@ -33,7 +33,7 @@ export default class NavMenu extends Component<{}, State> {
     if (loggedIn) {
       const result = await authService.getUserInfo();
       switch (result.status) {
-        case AuthResultStatus.Success:
+        case Status.Success:
           username = result?.result?.name;
           break;
       }
@@ -53,6 +53,9 @@ export default class NavMenu extends Component<{}, State> {
           <NavbarToggler onClick={() => this.setState({ collapsed: !this.state.collapsed })} className="mr-2" />
           <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!this.state.collapsed} navbar>
             <ul className="navbar-nav flex-grow">
+              <NavItem>
+                <NavLink tag={Link} className="text-dark" to="allPosts">Posts</NavLink>
+              </NavItem>
               <NavItem>
                 <NavLink tag={Link} className="text-dark" to="/">Home</NavLink>
               </NavItem>

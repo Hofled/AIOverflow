@@ -1,5 +1,7 @@
 using AIOverflow.Database;
 using AIOverflow.Identity;
+using AIOverflow.Services.Posts;
+using AIOverflow.Services.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,8 +18,9 @@ builder.Logging.AddConsole();
 builder.Services.AddSingleton(_ => new JwtSecretKeyDependency(secretKey));
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
-AIOverflow.Identity.Services.ConfigureServices(builder, secretKey);
+Services.ConfigureServices(builder, secretKey);
 AddDbContext(builder);
+AddScopedServices(builder);
 
 builder.Services.AddControllers();
 
@@ -39,6 +42,12 @@ static void AddDbContext(WebApplicationBuilder builder)
     }
 
     builder.Services.AddDbContext<PostgresDb>(options => options.UseNpgsql(DbConnectionString));
+}
+
+static void AddScopedServices(WebApplicationBuilder builder)
+{
+    builder.Services.AddScoped<IPostService, PostsService>();
+    builder.Services.AddScoped<IUserService, UserService>();
 }
 
 static void UseAppMiddlewares(WebApplication app)
