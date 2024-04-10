@@ -53,7 +53,7 @@ public class PostgresDb : DbContext
 
     public async Task<int> UpdateUserAsync(User updatedUser)
     {
-        Entry(updatedUser).CurrentValues.SetValues(updatedUser);
+        Users.Update(updatedUser);
         return await SaveChangesAsync();
     }
 
@@ -69,35 +69,29 @@ public class PostgresDb : DbContext
 
 
     //Posts Methods
-        public async Task<int> AddPostAsync(Post post)
+    public async Task<int> AddPostAsync(Post post)
     {
         await Posts.AddAsync(post);
         return await SaveChangesAsync();
     }
 
-        public async Task<List<Post>> GetAllPostsAsync()
+    public async Task<List<Post>> GetAllPostsAsync()
     {
-        return await Posts.Include(p => p.User).ToListAsync();
-    }
-    
-        public async Task<Post?> GetPostByIdAsync(int id)
-    {
-        return await Posts.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == id);
+        return await Posts.Include(p => p.Author).ToListAsync();
     }
 
-        public async Task<int> UpdatePostAsync(Post updatedPost)
+    public async Task<Post?> GetPostByIdAsync(int id)
     {
-        var existingPost = await Posts.FirstOrDefaultAsync(p => p.Id == updatedPost.Id);
-        if (existingPost != null)
-        {
-            // Assuming you want to update all properties. Adjust as necessary.
-            Entry(existingPost).CurrentValues.SetValues(updatedPost);
-            return await SaveChangesAsync();
-        }
-        return 0; // Or handle this scenario as you see fit
+        return await Posts.Include(p => p.Author).FirstOrDefaultAsync(p => p.Id == id);
     }
 
-        public async Task<int> DeletePostAsync(int id)
+    public async Task<int> UpdatePostAsync(Post updatedPost)
+    {
+        Posts.Update(updatedPost);
+        return await SaveChangesAsync();
+    }
+
+    public async Task<int> DeletePostAsync(int id)
     {
         var post = await Posts.FindAsync(id);
         if (post != null)

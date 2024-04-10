@@ -1,9 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using AIOverflow.Database;
 using AIOverflow.Identity;
-using Microsoft.AspNetCore.Identity;
+using AIOverflow.Services.Users;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,53 +13,45 @@ namespace JwtAuthenticationServer
     public class UserController : ControllerBase
     {
         private readonly string _secretKey;
-        private readonly PostgresDb _db;
-        private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly IUserService _userService;
 
-        public UserController(JwtSecretKeyDependency secretKey, PostgresDb db, IPasswordHasher<User> passwordHasher)
+        public UserController(JwtSecretKeyDependency secretKey, IUserService userService)
         {
+            _userService = userService;
             _secretKey = secretKey.SecretKey;
-            _db = db;
-            _passwordHasher = passwordHasher;
         }
 
         [HttpPost]
         [Route("register")]
         public async Task<ActionResult<TokenResponse>> RegisterAsync([FromBody] RegisterRequest request)
         {
-            if (_db.UserExists(request.Username))
+            try
             {
-                return Conflict($"The username {request.Username} already exists");
+                var user = await _userService.RegisterAsync(request.Username, request.Password);
+                var token = GenerateUserToken(user, _secretKey);
+                return new TokenResponse { Token = token };
             }
-
-            var user = new User { Name = request.Username, Claims = { new UserClaim { Type = ClaimTypes.NameIdentifier, Value = request.Username } } };
-
-            var hashedPassword = _passwordHasher.HashPassword(user, request.Password);
-            user.PasswordHash = hashedPassword;
-
-            await _db.AddUserAsync(user);
-
-            var token = GenerateUserToken(user, _secretKey);
-            return new TokenResponse { Token = token };
+            catch (UserConflictException e)
+            {
+                return Conflict(e.Message);
+            }
         }
 
         [HttpPost]
         [Route("login")]
         public async Task<ActionResult<TokenResponse>> LoginAsync([FromBody] LoginRequest request)
         {
-            var user = await _db.GetUserByNameAsync(request.Username);
-            if (user == null)
+            try
             {
-                return Unauthorized("Invalid credentials");
-            }
-
-            if (IsValidUser(user, request.Password, _passwordHasher))
-            {
+                var user = await _userService.LoginAsync(request.Username, request.Password);
                 var token = GenerateUserToken(user, _secretKey);
                 return new TokenResponse { Token = token };
-            }
 
-            return Unauthorized();
+            }
+            catch (UnauthorizedException e)
+            {
+                return Unauthorized(e.Message);
+            }
         }
 
 
@@ -75,18 +66,13 @@ namespace JwtAuthenticationServer
             }
 
 
-            var user = await _db.GetUserByNameAsync(userClaim.Value);
+            var user = await _userService.GetUserByNameAsync(userClaim.Value);
             if (user == null)
             {
                 return NotFound("User not found");
             }
 
             return new InfoResponse { Name = user.Name };
-        }
-
-        private bool IsValidUser(User user, string password, IPasswordHasher<User> passwordHasher)
-        {
-            return passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password) != PasswordVerificationResult.Failed;
         }
 
         private string GenerateUserToken(User user, string secretKey)

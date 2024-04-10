@@ -1,7 +1,7 @@
 import { Component, ChangeEvent, FormEvent } from 'react';
-import { Button, Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input, Alert, ModalFooter, Container, Row } from 'reactstrap';
+import { Button, Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input, Alert, Container, Row } from 'reactstrap';
 import authService from '../../../services/auth/service';
-import { AuthResultStatus } from '../../../services/auth/models';
+import { Status } from '../../../services/axios';
 
 // Define the LoginProps interface
 interface LoginProps {
@@ -46,11 +46,11 @@ class Login extends Component<LoginProps, LoginState> {
     const { username, password } = this.state;
     const result = await authService.login(username, password);
     switch (result.status) {
-      case AuthResultStatus.Success:
+      case Status.Success:
         this.setState({ error: undefined, loggedIn: true });
         this.props.onLogin && this.props.onLogin(this.state.username);
         break;
-      case AuthResultStatus.Fail:
+      case Status.Fail:
         this.setState({ error: result.result, loggedIn: false });
         break;
       default:
@@ -61,7 +61,7 @@ class Login extends Component<LoginProps, LoginState> {
 
   handleRegister = async () => {
     const result = await authService.register(this.state.username, this.state.password);
-    if (result.status !== AuthResultStatus.Success) {
+    if (result.status !== Status.Success) {
       this.setState({ error: result.result, loggedIn: false });
       return;
     }

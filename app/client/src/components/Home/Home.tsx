@@ -13,7 +13,7 @@ export default class Home extends Component<Props, State> {
     render() {
         return (
             <div className="home">
-                <Banner text='AIOverflow'/>
+                <Banner text='AIOverflow' />
                 <p>Welcome to the AIOverflow forums!</p>
             </div>
         )
