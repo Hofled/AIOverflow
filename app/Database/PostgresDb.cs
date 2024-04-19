@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using AIOverflow.Identity;
 using AIOverflow.Models.Posts;
+using AIOverflow.Models.Comments;
 
 namespace AIOverflow.Database;
 
@@ -8,6 +9,8 @@ public class PostgresDb : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Post> Posts { get; set; }
+    public DbSet<Comment> Comments { get; set; }
+
     public PostgresDb(DbContextOptions<PostgresDb> options) : base(options)
     {
         Database.Migrate();
@@ -21,6 +24,15 @@ public class PostgresDb : DbContext
         //Posts
         modelBuilder.Entity<Post>().Property(p => p.Title).IsRequired();
         modelBuilder.Entity<Post>().Property(p => p.Content).IsRequired();
+
+        //Comments
+        modelBuilder.Entity<Comment>().Property(c => c.Content).IsRequired();
+        modelBuilder.Entity<Comment>()
+            .HasOne<Post>()
+            .WithMany()
+            .HasForeignKey(c => c.PostId)
+            .OnDelete(DeleteBehavior.Cascade); // Ensures comments are deleted when the associated post is deleted.
+
 
 
     }
