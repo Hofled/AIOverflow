@@ -36,12 +36,19 @@ public class UserService : IUserService
             throw new UserConflictException($"The username {Username} already exists");
         }
 
-        var user = new User { Name = Username, Claims = { new UserClaim { Type = ClaimTypes.NameIdentifier, Value = Username } } };
+        var user = new User
+        {
+            Name = Username,
+            Claims = { new UserClaim { Type = ClaimTypes.NameIdentifier, Value = Username } }
+        };
 
         var hashedPassword = _passwordHasher.HashPassword(user, Password);
         user.PasswordHash = hashedPassword;
 
         await _db.AddUserAsync(user);
+        user.Claims.Add(new UserClaim { Type = "ID", Value = user.Id.ToString() });
+        await _db.UpdateUserAsync(user);
+        
         return user;
     }
 

@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosHeaders, AxiosResponse, Method } from "axios";
+import axios, { AxiosError, AxiosHeaders, AxiosResponse } from "axios";
 import { UserPaths } from "./consts";
 import { UserInfo } from "../../models/user-info";
 import { OperationStatus, onAxiosSuccess, onAxiosError, axiosRequest, wrapSuccess, wrapFail } from "../axios";

@@ -1,6 +1,7 @@
 import { LoaderFunction } from "react-router-dom";
 import postsService from "../../../services/posts/service";
 import { Status } from "../../../services/axios";
+import { APIPostToPost } from "../../../services/posts/models";
 
 const postLoader: LoaderFunction = async ({ params }) => {
     if (params.postId == null) {
@@ -13,7 +14,7 @@ const postLoader: LoaderFunction = async ({ params }) => {
         throw new Response("post not found", { status: 404 });
     }
 
-    return postResponse.result;
+    return postResponse.result ? APIPostToPost(postResponse.result) : postResponse.result;
 }
 
 export { postLoader };

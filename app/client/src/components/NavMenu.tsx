@@ -6,6 +6,7 @@ import LoginModal from './Authorization/Login/LoginModal';
 import Avatar from './Avatar/Avatar';
 import authService from '../services/auth/service';
 import { Status } from '../services/axios';
+import { postRoutes } from '../routing/consts';
 
 interface State {
   collapsed: boolean
@@ -15,6 +16,8 @@ interface State {
 }
 
 export default class NavMenu extends Component<{}, State> {
+  private authServiceSubID?: number = undefined;
+
   constructor(props: {}) {
     super(props);
 
@@ -23,11 +26,13 @@ export default class NavMenu extends Component<{}, State> {
       isLoginModalOpen: false,
       loggedIn: false
     };
-
-    authService.subscribe((authenticated) => this.setState({ loggedIn: authenticated }));
   }
 
   async componentDidMount() {
+    this.authServiceSubID = authService.subscribe((authenticated) => {
+      this.setState({ loggedIn: authenticated });
+    });
+
     let username: string | undefined;
     const loggedIn = authService.isAuthenticated();
     if (loggedIn) {
@@ -39,6 +44,11 @@ export default class NavMenu extends Component<{}, State> {
       }
     }
     this.setState({ loggedIn: loggedIn, username: username });
+  }
+
+  componentWillUnmount(): void {
+    if (this.authServiceSubID === undefined) return;
+    authService.unsubscribe(this.authServiceSubID);
   }
 
   toggleLoginModal = () => {
@@ -54,7 +64,7 @@ export default class NavMenu extends Component<{}, State> {
           <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!this.state.collapsed} navbar>
             <ul className="navbar-nav flex-grow">
               <NavItem>
-                <NavLink tag={Link} className="text-dark" to="allPosts">Posts</NavLink>
+                <NavLink tag={Link} className="text-dark" to={`${postRoutes.all}`}>Posts</NavLink>
               </NavItem>
               <NavItem>
                 <NavLink tag={Link} className="text-dark" to="/">Home</NavLink>
