@@ -15,6 +15,8 @@ interface State {
 }
 
 export default class NavMenu extends Component<{}, State> {
+  private authServiceSubID?: number = undefined;
+
   constructor(props: {}) {
     super(props);
 
@@ -23,11 +25,13 @@ export default class NavMenu extends Component<{}, State> {
       isLoginModalOpen: false,
       loggedIn: false
     };
-
-    authService.subscribe((authenticated) => this.setState({ loggedIn: authenticated }));
   }
 
   async componentDidMount() {
+    this.authServiceSubID = authService.subscribe((authenticated) => {
+      this.setState({ loggedIn: authenticated });
+    });
+
     let username: string | undefined;
     const loggedIn = authService.isAuthenticated();
     if (loggedIn) {
@@ -39,6 +43,11 @@ export default class NavMenu extends Component<{}, State> {
       }
     }
     this.setState({ loggedIn: loggedIn, username: username });
+  }
+
+  componentWillUnmount(): void {
+    if (this.authServiceSubID === undefined) return;
+    authService.unsubscribe(this.authServiceSubID);
   }
 
   toggleLoginModal = () => {
