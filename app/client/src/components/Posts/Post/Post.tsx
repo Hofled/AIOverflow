@@ -61,7 +61,7 @@ class Post extends Component<Props, PostState> {
         }
 
         const res = await this.props.updatePost(updatedPost);
-        if (res.status != Status.Success) {
+        if (res.status !== Status.Success) {
             console.error("failed updating post");
             this.setState({ title: this.state.lastSetTitle, content: this.state.lastSetContent, isEditing: false });
             return;
