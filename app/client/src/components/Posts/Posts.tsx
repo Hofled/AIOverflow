@@ -2,14 +2,27 @@ import { Component } from 'react';
 import { Container, Row, Col } from 'reactstrap';
 import { Post as PostProps } from "../../services/posts/models";
 import PostCard from './PostCard/PostCard';
+import { LoaderDataProp, withLoaderData } from '../../routing/wrappers';
 
-interface PostsPageProps {
+interface PostsState {
     posts: PostProps[];
 }
 
-class PostsPage extends Component<PostsPageProps> {
+class PostsPage extends Component<LoaderDataProp<PostProps[]>, PostsState> {
+    constructor(props: LoaderDataProp<PostProps[]>) {
+        super(props);
+        this.state = {
+            posts: [],
+        };
+    }
+    
+    componentDidMount(): void {
+        const data = this.props.loaderData;
+        this.setState({ posts: data });
+    }
+
     render() {
-        const { posts } = this.props;
+        const { posts } = this.state;
         return (
             <Container>
                 <h1>Posts</h1>
@@ -37,4 +50,4 @@ class PostsPage extends Component<PostsPageProps> {
 }
 
 
-export default PostsPage;
+export default withLoaderData<PostProps[]>(PostsPage);
