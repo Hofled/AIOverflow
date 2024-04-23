@@ -47,7 +47,7 @@ class Login extends Component<LoginProps, LoginState> {
     const result = await authService.login(username, password);
     switch (result.status) {
       case Status.Success:
-        this.setState({ error: undefined, loggedIn: true });
+        this.setState({ error: undefined, loggedIn: true, successMessage: "Successfully logged in!" });
         this.props.onLogin && this.props.onLogin(this.state.username);
         break;
       case Status.Fail:
