@@ -2,6 +2,7 @@ import { Component } from 'react';
 import { Card, CardBody, CardTitle, CardText } from 'reactstrap';
 import { Post as PostProps } from "../../../services/posts/models";
 import { Link } from 'react-router-dom';
+import { postRoot } from '../../../routing/consts';
 
 class PostCard extends Component<PostProps, {}> {
   render() {
@@ -10,7 +11,7 @@ class PostCard extends Component<PostProps, {}> {
       <Card>
         <CardBody>
           <CardTitle>
-            <Link className="text-dark" to={`/post/${id}`}>{title}</Link>
+            <Link className="text-dark" to={`${postRoot}/${id}`}>{title}</Link>
           </CardTitle>
           <CardText>{content}</CardText>
           <div>

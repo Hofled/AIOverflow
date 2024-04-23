@@ -4,6 +4,7 @@ import { Post as PostProps } from "../../services/posts/models";
 import PostCard from './PostCard/PostCard';
 import { LoaderDataProp, withLoaderData } from '../../routing/wrappers';
 import { Link } from 'react-router-dom';
+import { postRoutes } from '../../routing/consts';
 
 interface PostsState {
     posts: PostProps[];
@@ -30,7 +31,7 @@ class PostsPage extends Component<LoaderDataProp<PostProps[]>, PostsState> {
             <Container>
                 <h1>Posts</h1>
                 <Col className='d-flex justify-content-center'>
-                    <Link to="/create-post">
+                    <Link to={`${postRoutes.new}`}>
                         <Button color="primary">
                             Create Post
                         </Button>

@@ -6,6 +6,7 @@ import LoginModal from './Authorization/Login/LoginModal';
 import Avatar from './Avatar/Avatar';
 import authService from '../services/auth/service';
 import { Status } from '../services/axios';
+import { postRoutes } from '../routing/consts';
 
 interface State {
   collapsed: boolean
@@ -63,7 +64,7 @@ export default class NavMenu extends Component<{}, State> {
           <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!this.state.collapsed} navbar>
             <ul className="navbar-nav flex-grow">
               <NavItem>
-                <NavLink tag={Link} className="text-dark" to="allPosts">Posts</NavLink>
+                <NavLink tag={Link} className="text-dark" to={`${postRoutes.all}`}>Posts</NavLink>
               </NavItem>
               <NavItem>
                 <NavLink tag={Link} className="text-dark" to="/">Home</NavLink>

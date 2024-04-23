@@ -14,14 +14,14 @@ public class PostsService : IPostService
         _db = db;
     }
 
-    public async Task<Post> AddPostAsync(PostCreateDto postDto)
+    public async Task<Post> AddPostAsync(PostCreateDto postDto, int userID)
     {
         var now = DateTime.UtcNow;
         var newPost = new Post
         {
             Title = postDto.Title,
             Content = postDto.Content,
-            UserId = postDto.UserId,
+            UserId = userID,
             CreatedAt = now,
             EditedAt = now
         };
@@ -79,7 +79,7 @@ public class PostsService : IPostService
 
 public interface IPostService
 {
-    Task<Post> AddPostAsync(PostCreateDto postDto);
+    Task<Post> AddPostAsync(PostCreateDto postDto, int userID);
     Task<List<Post>> GetAllPostsAsync();
     Task<Post?> GetPostByIdAsync(int id);
     Task UpdatePostAsync(int id, Post updatedPost);

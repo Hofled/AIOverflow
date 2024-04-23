@@ -33,3 +33,8 @@ export let APIPostToPost = (post: APIPost): Post => {
         author: post.author
     };
 };
+
+export interface NewPost {
+    title: string;
+    content: string;
+}

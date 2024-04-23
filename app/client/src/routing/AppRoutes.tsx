@@ -12,6 +12,8 @@ import Posts from "../components/Posts/Posts";
 import { postsLoader } from "../components/Posts/loader";
 
 import postsService from "../services/posts/service";
+import PostCreationPage from "../components/Posts/PostCreate/PostCreate";
+import { AllPostSubPath, NewPostSubPath, postRoot } from "./consts";
 
 const router = createBrowserRouter([
   {
@@ -27,11 +29,18 @@ const router = createBrowserRouter([
         ]
       },
       {
-        path: "allPosts", element: <Posts />, loader: postsLoader,
+        path: postRoot, children: [
+          {
+            path: AllPostSubPath, element: <Posts />, loader: postsLoader,
+          },
+          {
+            path: ":postId", element: <Post updatePost={postsService.updatePost} />, loader: postLoader,
+          },
+          {
+            path: NewPostSubPath, element: <PostCreationPage />,
+          }
+        ]
       },
-      {
-        path: "post/:postId", element: <Post updatePost={postsService.updatePost} />, loader: postLoader,
-      }
     ],
   },
 ]);
