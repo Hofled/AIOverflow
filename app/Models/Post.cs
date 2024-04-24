@@ -1,5 +1,9 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using AIOverflow.Identity;
+using System.Collections.Generic;  
+using AIOverflow.Models.Comments;
+
+
 
 namespace AIOverflow.Models.Posts
 {
@@ -17,5 +21,9 @@ namespace AIOverflow.Models.Posts
         // Navigation property
         [ForeignKey("UserId")]
         public User Author { get; set; }
+
+        // Navigation property for comments on the post
+        public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
     }
 }

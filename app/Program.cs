@@ -2,8 +2,11 @@ using AIOverflow.Database;
 using AIOverflow.Identity;
 using AIOverflow.Services.Posts;
 using AIOverflow.Services.Users;
+using AIOverflow.Services.Comments;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Builder;
+
 
 string? secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
 if (string.IsNullOrEmpty(secretKey))
@@ -17,6 +20,7 @@ builder.Logging.AddConsole();
 
 builder.Services.AddSingleton(_ => new JwtSecretKeyDependency(secretKey));
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
 
 Services.ConfigureServices(builder, secretKey);
 AddDbContext(builder);
@@ -48,6 +52,8 @@ static void AddScopedServices(WebApplicationBuilder builder)
 {
     builder.Services.AddScoped<IPostService, PostsService>();
     builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<ICommentService, CommentsService>();
+
 }
 
 static void UseAppMiddlewares(WebApplication app)

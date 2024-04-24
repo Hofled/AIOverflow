@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AIOverflow.Identity;
 using AIOverflow.Models.Posts;
 using AIOverflow.Models.Comments;
+using System;
 
 namespace AIOverflow.Database;
 
@@ -13,30 +14,49 @@ public class PostgresDb : DbContext
 
     public PostgresDb(DbContextOptions<PostgresDb> options) : base(options)
     {
-        Database.Migrate();
+        // Removed automatic migration call. Best to handle migrations manually or through a controlled deployment process.
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>().Property(u => u.Name).IsRequired();
-        modelBuilder.Entity<User>().HasIndex(u => u.Name).IsUnique();
+        // User Configuration
+        modelBuilder.Entity<User>()
+            .Property(u => u.Name).IsRequired().HasMaxLength(100);
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Name).IsUnique();
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.Comments)  // This assumes that User-Comment navigation is useful in your domain logic.
+            .WithOne(c => c.Author)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        //Posts
-        modelBuilder.Entity<Post>().Property(p => p.Title).IsRequired();
-        modelBuilder.Entity<Post>().Property(p => p.Content).IsRequired();
-
-        //Comments
-        modelBuilder.Entity<Comment>().Property(c => c.Content).IsRequired();
-        modelBuilder.Entity<Comment>()
-            .HasOne<Post>()
-            .WithMany()
+        // Post Configuration
+        modelBuilder.Entity<Post>()
+            .Property(p => p.Title).IsRequired().HasMaxLength(255);
+        modelBuilder.Entity<Post>()
+            .Property(p => p.Content).IsRequired();
+        modelBuilder.Entity<Post>()
+            .HasMany(p => p.Comments)
+            .WithOne(c => c.Post)
             .HasForeignKey(c => c.PostId)
-            .OnDelete(DeleteBehavior.Cascade); // Ensures comments are deleted when the associated post is deleted.
+            .OnDelete(DeleteBehavior.Cascade);
 
-
-
+        // Comment Configuration
+        modelBuilder.Entity<Comment>()
+            .Property(c => c.Content).IsRequired();
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.Author)
+            .WithMany(u => u.Comments)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.Post)
+            .WithMany(p => p.Comments)
+            .HasForeignKey(c => c.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
+    // User CRUD methods
     public async Task<int> AddUserAsync(User user)
     {
         await Users.AddAsync(user);
@@ -71,16 +91,15 @@ public class PostgresDb : DbContext
 
     public void DeleteUser(int id)
     {
-        var User = Users.Find(id);
-        if (User != null)
+        var user = Users.Find(id);
+        if (user != null)
         {
-            Users.Remove(User);
+            Users.Remove(user);
             SaveChanges();
         }
     }
 
-
-    //Posts Methods
+    // Post CRUD methods
     public async Task<int> AddPostAsync(Post post)
     {
         await Posts.AddAsync(post);
@@ -103,15 +122,13 @@ public class PostgresDb : DbContext
         return await SaveChangesAsync();
     }
 
-    public async Task<int> DeletePostAsync(int id)
+    public async Task DeletePostAsync(int id)
     {
-        var post = await Posts.FindAsync(id);
+        var post = Posts.Find(id);
         if (post != null)
         {
             Posts.Remove(post);
-            return await SaveChangesAsync();
+            await SaveChangesAsync();
         }
-        return 0; // Or handle this scenario as you see fit
     }
-
 }
