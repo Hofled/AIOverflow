@@ -20,7 +20,7 @@ namespace AIOverflow.Models.Posts
 
         // Navigation property
         [ForeignKey("UserId")]
-        public User Author { get; set; }
+        public virtual User Author { get; set; }
 
         // Navigation property for comments on the post
         public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();

@@ -17,9 +17,9 @@ namespace AIOverflow.Models.Comments
 
         // Navigation properties
         [ForeignKey("UserId")]
-        public User Author { get; set; }
+        public virtual User Author { get; set; }
 
         [ForeignKey("PostId")]
-        public Post Post { get; set; }
+        public virtual Post Post { get; set; }
     }
 }

@@ -24,11 +24,6 @@ public class PostgresDb : DbContext
             .Property(u => u.Name).IsRequired().HasMaxLength(100);
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Name).IsUnique();
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.Comments)  // This assumes that User-Comment navigation is useful in your domain logic.
-            .WithOne(c => c.Author)
-            .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         // Post Configuration
         modelBuilder.Entity<Post>()
@@ -36,9 +31,9 @@ public class PostgresDb : DbContext
         modelBuilder.Entity<Post>()
             .Property(p => p.Content).IsRequired();
         modelBuilder.Entity<Post>()
-            .HasMany(p => p.Comments)
-            .WithOne(c => c.Post)
-            .HasForeignKey(c => c.PostId)
+            .HasOne(p => p.Author)
+            .WithMany(u => u.Posts)
+            .HasForeignKey(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Comment Configuration
@@ -108,12 +103,21 @@ public class PostgresDb : DbContext
 
     public async Task<List<Post>> GetAllPostsAsync()
     {
-        return await Posts.Include(p => p.Author).ToListAsync();
+        return await Posts
+        .Include(p => p.Comments)
+        .ThenInclude(c => c.Author)
+        .Include(p => p.Author)
+        .ToListAsync();
+
     }
 
     public async Task<Post?> GetPostByIdAsync(int id)
     {
-        return await Posts.Include(p => p.Author).FirstOrDefaultAsync(p => p.Id == id);
+        return await Posts
+        .Include(p => p.Comments)
+        .ThenInclude(c => c.Author)
+        .Include(p => p.Author)
+        .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<int> UpdatePostAsync(Post updatedPost)
@@ -125,10 +129,12 @@ public class PostgresDb : DbContext
     public async Task DeletePostAsync(int id)
     {
         var post = Posts.Find(id);
-        if (post != null)
+        if (post == null)
         {
-            Posts.Remove(post);
-            await SaveChangesAsync();
+            throw new Exception("Post not found, unable to delete");
         }
+
+        Posts.Remove(post);
+        await SaveChangesAsync();
     }
 }
