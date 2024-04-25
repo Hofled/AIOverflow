@@ -99,6 +99,8 @@ public class PostgresDb : DbContext
     public async Task<int> AddPostAsync(Post post)
     {
         await Posts.AddAsync(post);
+        await Entry(post).Reference(p => p.Author).LoadAsync();
+        await Entry(post).Collection(p => p.Comments).LoadAsync();
         return await SaveChangesAsync();
     }
 

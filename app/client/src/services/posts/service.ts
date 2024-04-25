@@ -16,7 +16,7 @@ class PostsService {
         return axiosRequest<Post, any>(`${postsPrefix}/${postID}`, "PUT", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r), updatePost);
     }
 
-    async createPost(newPost: NewPost): Promise<OperationStatus<null>> {
+    async createPost(newPost: NewPost): Promise<OperationStatus<APIPost>> {
         const jwtToken = localStorage.getItem('token');
         if (!jwtToken) {
             return wrapFail();

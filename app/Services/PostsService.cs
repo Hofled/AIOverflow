@@ -26,7 +26,6 @@ namespace AIOverflow.Services.Posts
             };
 
             await _db.AddPostAsync(newPost);
-
             // Convert to DTO before returning
             return _ToPostDisplayDto(newPost);
         }
