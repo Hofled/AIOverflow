@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, Input, Button } from 'reactstrap';
+import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, Input, Button, Badge } from 'reactstrap';
 import { Post as PostProps, UpdatePost, Comment } from "../../../services/posts/models";
 import { LoaderDataProp, withLoaderData } from '../../../routing/wrappers';
 import { Status } from '../../../services/axios';
 import postsService, { PostUpdater } from '../../../services/posts/service';
 import PostComment from './Comment/Comment';
+import "./Post.css";
 
 interface PostState {
     isEditing: boolean;
@@ -131,7 +132,7 @@ class Post extends Component<Props, PostState> {
                     </CardBody>
                 </Card>
                 <div className="mt-4">
-                    <h6>Comments</h6>
+                    <h6>Comments {<Badge color="primary" pill>{this.state.comments.length}</Badge>}</h6>
                     {this.state.comments?.map(comment => (
                         <Row key={comment.id}>
                             <Col sm="12" key={comment.id}>
