@@ -3,7 +3,11 @@ import { OperationStatus, axiosRequest, wrapFail, wrapSuccess } from "../axios";
 import { APIPost, NewPost, Post, UpdatePost } from "./models";
 import { postsPrefix } from "./consts";
 
-class PostsService {
+export interface PostUpdater {
+    updatePost(postID: number, updatePost: UpdatePost): Promise<OperationStatus<null>>;
+}
+
+class PostsService implements PostUpdater {
     async getPosts(): Promise<OperationStatus<APIPost[]>> {
         return axiosRequest<Post[], any>(`${postsPrefix}/`, "GET", (r: AxiosResponse<Post[]>) => wrapSuccess(r.data), (r) => wrapFail(r));
     }

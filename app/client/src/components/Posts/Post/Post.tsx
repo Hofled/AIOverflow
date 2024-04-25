@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { Post as PostProps, UpdatePost } from "../../../services/posts/models";
 import { LoaderDataProp, withLoaderData } from '../../../routing/wrappers';
-import { OperationStatus, Status } from '../../../services/axios';
+import { Status } from '../../../services/axios';
+import { PostUpdater } from '../../../services/posts/service';
 
 interface Comment {
     id: number;
@@ -20,11 +21,7 @@ interface PostState {
 
 type PostModel = PostProps & { comments: Comment[] };
 
-interface postUpdater {
-    updatePost(updatePost: UpdatePost): Promise<OperationStatus<Post>>
-}
-
-type Props = LoaderDataProp<PostModel> & postUpdater;
+type Props = LoaderDataProp<PostModel> & PostUpdater;
 
 class Post extends Component<Props, PostState> {
     constructor(props: Props) {
@@ -55,7 +52,7 @@ class Post extends Component<Props, PostState> {
             content: this.state.content,
         }
 
-        const res = await this.props.updatePost(updatedPost);
+        const res = await this.props.updatePost(this.props.loaderData.id, updatedPost);
         if (res.status !== Status.Success) {
             console.error("failed updating post");
             this.setState({ title: this.state.lastSetTitle, content: this.state.lastSetContent, isEditing: false });
