@@ -43,3 +43,8 @@ export interface NewPost {
     title: string;
     content: string;
 }
+
+export interface NewComment {
+    content: string;
+    postId: number;
+}

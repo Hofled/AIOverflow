@@ -1,7 +1,7 @@
 import { AxiosHeaders, AxiosResponse } from "axios";
 import { OperationStatus, axiosRequest, wrapFail, wrapSuccess } from "../axios";
-import { APIPost, NewPost, Post, UpdatePost } from "./models";
-import { postsPrefix } from "./consts";
+import { APIPost, NewComment, NewPost, Post, UpdatePost } from "./models";
+import { commentsPrefix, postsPrefix } from "./consts";
 
 export interface PostUpdater {
     updatePost(postID: number, updatePost: UpdatePost): Promise<OperationStatus<null>>;
@@ -27,6 +27,15 @@ class PostsService implements PostUpdater {
         }
 
         return axiosRequest<Post, any>(`${postsPrefix}/`, "POST", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r), newPost, new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}` }));
+    }
+
+    async addPostComment(newComment: NewComment): Promise<OperationStatus<null>> {
+        const jwtToken = localStorage.getItem('token');
+        if (!jwtToken) {
+            return wrapFail();
+        }
+
+        return axiosRequest<Post, any>(`${commentsPrefix}/`, "POST", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r), newComment, new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}` }));
     }
 }
 

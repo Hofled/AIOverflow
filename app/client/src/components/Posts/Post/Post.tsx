@@ -3,7 +3,7 @@ import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, 
 import { Post as PostProps, UpdatePost } from "../../../services/posts/models";
 import { LoaderDataProp, withLoaderData } from '../../../routing/wrappers';
 import { Status } from '../../../services/axios';
-import { PostUpdater } from '../../../services/posts/service';
+import postsService, { PostUpdater } from '../../../services/posts/service';
 
 interface Comment {
     id: number;
@@ -71,10 +71,9 @@ class Post extends Component<Props, PostState> {
         this.setState({ newComment: e.target.value });
     };
 
-    handleSubmitComment = (e: React.FormEvent<HTMLFormElement>) => {
+    handleSubmitComment = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Here you would submit the new comment to your backend API
-        console.log('Submitted comment:', this.state.newComment);
+        await postsService.addPostComment({ postId: this.props.loaderData.id, content: this.state.newComment });
         // After submitting the comment, you might want to clear the comment input
         this.setState({ newComment: '' });
     };

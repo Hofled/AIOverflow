@@ -15,7 +15,7 @@ namespace AIOverflow.Controllers.Comments
             _commentService = commentService;
         }
 
-        // POST: Comments
+        // POST: comments
         [HttpPost("")]
         public async Task<ActionResult<CommentDisplayDto>> CreateComment([FromBody] CommentCreateDto dto)
         {
