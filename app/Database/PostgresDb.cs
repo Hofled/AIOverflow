@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using AIOverflow.Identity;
 using AIOverflow.Models.Posts;
+using AIOverflow.Models.Comments;
+using System;
+using AIOverflow.DTOs;
 
 namespace AIOverflow.Database;
 
@@ -8,23 +11,48 @@ public class PostgresDb : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Post> Posts { get; set; }
+    public DbSet<Comment> Comments { get; set; }
+
     public PostgresDb(DbContextOptions<PostgresDb> options) : base(options)
     {
-        Database.Migrate();
+        // Removed automatic migration call. Best to handle migrations manually or through a controlled deployment process.
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>().Property(u => u.Name).IsRequired();
-        modelBuilder.Entity<User>().HasIndex(u => u.Name).IsUnique();
+        // User Configuration
+        modelBuilder.Entity<User>()
+            .Property(u => u.Name).IsRequired().HasMaxLength(100);
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Name).IsUnique();
 
-        //Posts
-        modelBuilder.Entity<Post>().Property(p => p.Title).IsRequired();
-        modelBuilder.Entity<Post>().Property(p => p.Content).IsRequired();
+        // Post Configuration
+        modelBuilder.Entity<Post>()
+            .Property(p => p.Title).IsRequired().HasMaxLength(255);
+        modelBuilder.Entity<Post>()
+            .Property(p => p.Content).IsRequired();
+        modelBuilder.Entity<Post>()
+            .HasOne(p => p.Author)
+            .WithMany(u => u.Posts)
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-
+        // Comment Configuration
+        modelBuilder.Entity<Comment>()
+            .Property(c => c.Content).IsRequired();
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.Author)
+            .WithMany(u => u.Comments)
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Comment>()
+            .HasOne(c => c.Post)
+            .WithMany(p => p.Comments)
+            .HasForeignKey(c => c.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
+    // User CRUD methods
     public async Task<int> AddUserAsync(User user)
     {
         await Users.AddAsync(user);
@@ -59,30 +87,40 @@ public class PostgresDb : DbContext
 
     public void DeleteUser(int id)
     {
-        var User = Users.Find(id);
-        if (User != null)
+        var user = Users.Find(id);
+        if (user != null)
         {
-            Users.Remove(User);
+            Users.Remove(user);
             SaveChanges();
         }
     }
 
-
-    //Posts Methods
+    // Post CRUD methods
     public async Task<int> AddPostAsync(Post post)
     {
         await Posts.AddAsync(post);
+        await Entry(post).Reference(p => p.Author).LoadAsync();
+        await Entry(post).Collection(p => p.Comments).LoadAsync();
         return await SaveChangesAsync();
     }
 
     public async Task<List<Post>> GetAllPostsAsync()
     {
-        return await Posts.Include(p => p.Author).ToListAsync();
+        return await Posts
+        .Include(p => p.Comments)
+        .ThenInclude(c => c.Author)
+        .Include(p => p.Author)
+        .ToListAsync();
+
     }
 
     public async Task<Post?> GetPostByIdAsync(int id)
     {
-        return await Posts.Include(p => p.Author).FirstOrDefaultAsync(p => p.Id == id);
+        return await Posts
+        .Include(p => p.Comments)
+        .ThenInclude(c => c.Author)
+        .Include(p => p.Author)
+        .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<int> UpdatePostAsync(Post updatedPost)
@@ -91,15 +129,55 @@ public class PostgresDb : DbContext
         return await SaveChangesAsync();
     }
 
-    public async Task<int> DeletePostAsync(int id)
+    public async Task DeletePostAsync(int id)
     {
-        var post = await Posts.FindAsync(id);
-        if (post != null)
+        var post = Posts.Find(id);
+        if (post == null)
         {
-            Posts.Remove(post);
-            return await SaveChangesAsync();
+            throw new Exception("Post not found, unable to delete");
         }
-        return 0; // Or handle this scenario as you see fit
+
+        Posts.Remove(post);
+        await SaveChangesAsync();
     }
 
+    public async Task<int> AddCommentAsync(Comment comment)
+    {
+        await Comments.AddAsync(comment);
+        await Entry(comment).Reference(c => c.Author).LoadAsync();
+        return await SaveChangesAsync();
+    }
+
+    public async Task<Comment?> GetCommentByIdAsync(int id)
+    {
+        return await Comments
+        .Include(c => c.Author)
+        .FirstOrDefaultAsync(c => c.Id == id);
+    }
+
+    public async Task<List<Comment>> GetAllCommentsByPostIdAsync(int id)
+    {
+        return await Comments
+        .Where(c => c.PostId == id)
+        .Include(c => c.Author)
+        .ToListAsync();
+    }
+
+    public async Task<int> UpdateCommentAsync(Comment updatedComment)
+    {
+        Comments.Update(updatedComment);
+        return await SaveChangesAsync();
+    }
+
+    public async Task<int> DeleteCommentAsync(int id)
+    {
+        var comment = Comments.Find(id);
+        if (comment == null)
+        {
+            throw new Exception("Comment not found, unable to delete");
+        }
+
+        Comments.Remove(comment);
+        return await SaveChangesAsync();
+    }
 }

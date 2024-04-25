@@ -1,29 +1,25 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using AIOverflow.Identity;
-using System.Collections.Generic;  
-using AIOverflow.Models.Comments;
+using AIOverflow.Models.Posts;
 
-
-
-namespace AIOverflow.Models.Posts
+namespace AIOverflow.Models.Comments
 {
-    public class Post
+    public class Comment
     {
         public int Id { get; set; }
-        public string Title { get; set; }
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime EditedAt { get; set; }
 
         // Foreign key
         public int UserId { get; set; }
+        public int PostId { get; set; }
 
-        // Navigation property
+        // Navigation properties
         [ForeignKey("UserId")]
         public virtual User Author { get; set; }
 
-        // Navigation property for comments on the post
-        public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
-
+        [ForeignKey("PostId")]
+        public virtual Post Post { get; set; }
     }
 }

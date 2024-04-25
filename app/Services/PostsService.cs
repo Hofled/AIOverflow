@@ -1,87 +1,100 @@
 using AIOverflow.Database;
 using AIOverflow.DTOs;
 using AIOverflow.Models.Posts;
-using Microsoft.EntityFrameworkCore;
 
-namespace AIOverflow.Services.Posts;
-public class PostsService : IPostService
+namespace AIOverflow.Services.Posts
 {
-
-    private readonly PostgresDb _db;
-
-    public PostsService(PostgresDb db)
+    public class PostsService : IPostService
     {
-        _db = db;
-    }
+        private readonly PostgresDb _db;
 
-    public async Task<Post> AddPostAsync(PostCreateDto postDto, int userID)
-    {
-        var now = DateTime.UtcNow;
-        var newPost = new Post
+        public PostsService(PostgresDb db)
         {
-            Title = postDto.Title,
-            Content = postDto.Content,
-            UserId = userID,
-            CreatedAt = now,
-            EditedAt = now
-        };
-
-        await _db.AddPostAsync(newPost);
-
-        return newPost;
-    }
-
-    public async Task<List<Post>> GetAllPostsAsync()
-    {
-        return await _db.GetAllPostsAsync();
-    }
-
-    public async Task<Post?> GetPostByIdAsync(int id)
-    {
-        return await _db.GetPostByIdAsync(id);
-    }
-
-    public async Task UpdatePostAsync(int id, Post updatedPost)
-    {
-        if (id != updatedPost.Id)
-        {
-            throw new BadHttpRequestException("provided id and post id do not match");
+            _db = db;
         }
 
-        updatedPost.EditedAt = DateTime.UtcNow;
-        try
+        public async Task<PostDisplayDto> AddPostAsync(PostCreateDto postDto, int userID)
         {
-            await _db.UpdatePostAsync(updatedPost);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!PostExists(id))
+            var now = DateTime.UtcNow;
+            var newPost = new Post
             {
-                throw new Exception($"post with id {id} not found");
-            }
-            else
+                Title = postDto.Title,
+                Content = postDto.Content,
+                UserId = userID,
+                CreatedAt = now,
+                EditedAt = now
+            };
+
+            await _db.AddPostAsync(newPost);
+            // Convert to DTO before returning
+            return _ToPostDisplayDto(newPost);
+        }
+
+        public async Task<List<PostDisplayDto>> GetAllPostsAsync()
+        {
+            var posts = await _db.GetAllPostsAsync();
+            return posts.Select(p => _ToPostDisplayDto(p)).ToList();
+        }
+
+        public async Task<PostDisplayDto?> GetPostByIdAsync(int id)
+        {
+            var post = await _db.GetPostByIdAsync(id);
+
+            if (post == null)
             {
-                throw;
+                return null;
+            };
+
+            return _ToPostDisplayDto(post);
+        }
+
+        public async Task UpdatePostAsync(int id, PostUpdateDto postDto)
+        {
+            var post = await _db.GetPostByIdAsync(id);
+            if (post == null)
+            {
+                throw new BadHttpRequestException("Post not found");
             }
+
+            post.Title = postDto.Title;
+            post.Content = postDto.Content;
+            post.EditedAt = DateTime.UtcNow;
+
+            await _db.UpdatePostAsync(post);
+        }
+
+        public async Task DeletePostAsync(int id)
+        {
+            await _db.DeletePostAsync(id);
+        }
+
+        private PostDisplayDto _ToPostDisplayDto(Post post)
+        {
+            return new PostDisplayDto
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Content = post.Content,
+                CreatedAt = post.CreatedAt,
+                EditedAt = post.EditedAt,
+                Author = new UserDto { Id = post.Author.Id, Name = post.Author.Name },
+                Comments = post.Comments.Select(c => new CommentDisplayDto
+                {
+                    Id = c.Id,
+                    Content = c.Content,
+                    CreatedAt = c.CreatedAt,
+                    Author = new UserDto { Id = c.Author.Id, Name = c.Author.Name }
+                }).ToList()
+            };
         }
     }
 
-    private bool PostExists(int id)
+    public interface IPostService
     {
-        return _db.Posts.Any(e => e.Id == id);
+        Task<PostDisplayDto> AddPostAsync(PostCreateDto postDto, int userID);
+        Task<List<PostDisplayDto>> GetAllPostsAsync();
+        Task<PostDisplayDto?> GetPostByIdAsync(int id);
+        Task UpdatePostAsync(int id, PostUpdateDto postDto);
+        Task DeletePostAsync(int id);
     }
-
-    public async Task DeletePostAsync(int id)
-    {
-        await _db.DeletePostAsync(id);
-    }
-}
-
-public interface IPostService
-{
-    Task<Post> AddPostAsync(PostCreateDto postDto, int userID);
-    Task<List<Post>> GetAllPostsAsync();
-    Task<Post?> GetPostByIdAsync(int id);
-    Task UpdatePostAsync(int id, Post updatedPost);
-    Task DeletePostAsync(int id);
 }

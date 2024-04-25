@@ -1,14 +1,20 @@
 import React, { Component } from 'react';
 import { Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import postsService from "../../../services/posts/service";
+import { withNavigation } from '../../../routing/wrappers';
+import { NavigateFunction } from 'react-router-dom';
+
+interface NavigateProps {
+  navigate: NavigateFunction;
+}
 
 interface PostCreationPageState {
   title: string;
   content: string;
 }
 
-class PostCreationPage extends Component<{}, PostCreationPageState> {
-  constructor(props: {}) {
+class PostCreationPage extends Component<NavigateProps, PostCreationPageState> {
+  constructor(props: NavigateProps) {
     super(props);
     this.state = {
       title: '',
@@ -24,13 +30,15 @@ class PostCreationPage extends Component<{}, PostCreationPageState> {
     this.setState({ content: e.target.value });
   };
 
-  handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const { title, content } = this.state;
-    postsService.createPost({
-        content: content,
-        title: title,
+    const response = await postsService.createPost({
+      content: content,
+      title: title,
     });
+
+    this.props.navigate(`/post/${response.result?.id}`);
     // Optionally, clear the form after submission
     this.setState({ title: '', content: '' });
   };
@@ -57,4 +65,4 @@ class PostCreationPage extends Component<{}, PostCreationPageState> {
   }
 }
 
-export default PostCreationPage;
+export default withNavigation(PostCreationPage);

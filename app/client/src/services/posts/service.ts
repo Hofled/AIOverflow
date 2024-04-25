@@ -1,28 +1,41 @@
 import { AxiosHeaders, AxiosResponse } from "axios";
 import { OperationStatus, axiosRequest, wrapFail, wrapSuccess } from "../axios";
-import { APIPost, NewPost, Post } from "./models";
-import { postsPrefix } from "./consts";
+import { APIPost, NewComment, NewPost, UpdatePost, APIComment, APICommentToComment } from "./models";
+import { commentsPrefix, postsPrefix } from "./consts";
 
-class PostsService {
+export interface PostUpdater {
+    updatePost(postID: number, updatePost: UpdatePost): Promise<OperationStatus<null>>;
+}
+
+class PostsService implements PostUpdater {
     async getPosts(): Promise<OperationStatus<APIPost[]>> {
-        return axiosRequest<Post[], any>(`${postsPrefix}/`, "GET", (r: AxiosResponse<Post[]>) => wrapSuccess(r.data), (r) => wrapFail(r));
+        return axiosRequest<APIPost[], any>(`${postsPrefix}/`, "GET", (r: AxiosResponse<APIPost[]>) => wrapSuccess(r.data), (r) => wrapFail(r));
     }
 
     async getPost(postId: number): Promise<OperationStatus<APIPost>> {
-        return axiosRequest<Post, any>(`${postsPrefix}/${postId}`, "GET", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r));
+        return axiosRequest<APIPost, any>(`${postsPrefix}/${postId}`, "GET", (r: AxiosResponse<APIPost>) => wrapSuccess(r.data), (r) => wrapFail(r));
     }
 
-    async updatePost(post: Post): Promise<OperationStatus<null>> {
-        return axiosRequest<Post, any>(`${postsPrefix}/${post.id}`, "PUT", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r), post);
+    async updatePost(postID: number, updatePost: UpdatePost): Promise<OperationStatus<null>> {
+        return axiosRequest<APIPost, any>(`${postsPrefix}/${postID}`, "PUT", (r: AxiosResponse<APIPost>) => wrapSuccess(r.data), (r) => wrapFail(r), updatePost);
     }
 
-    async createPost(newPost: NewPost): Promise<OperationStatus<null>> {
+    async createPost(newPost: NewPost): Promise<OperationStatus<APIPost>> {
         const jwtToken = localStorage.getItem('token');
         if (!jwtToken) {
             return wrapFail();
         }
 
-        return axiosRequest<Post, any>(`${postsPrefix}/`, "POST", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r), newPost, new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}` }));
+        return axiosRequest<APIPost, any>(`${postsPrefix}/`, "POST", (r: AxiosResponse<APIPost>) => wrapSuccess(r.data), (r) => wrapFail(r), newPost, new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}` }));
+    }
+
+    async addPostComment(newComment: NewComment): Promise<OperationStatus<APIComment>> {
+        const jwtToken = localStorage.getItem('token');
+        if (!jwtToken) {
+            return wrapFail();
+        }
+
+        return axiosRequest<APIComment, any>(`${commentsPrefix}/`, "POST", (r: AxiosResponse<APIComment>) => wrapSuccess(APICommentToComment(r.data)), (r) => wrapFail(r), newComment, new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}` }));
     }
 }
 

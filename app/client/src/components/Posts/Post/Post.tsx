@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
-import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, Input, Button } from 'reactstrap';
-import { Post as PostProps } from "../../../services/posts/models";
+import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, Input, Button, Badge } from 'reactstrap';
+import { Post as PostProps, UpdatePost, Comment } from "../../../services/posts/models";
 import { LoaderDataProp, withLoaderData } from '../../../routing/wrappers';
-import { OperationStatus, Status } from '../../../services/axios';
-
-interface Comment {
-    id: number;
-    content: string;
-}
+import { Status } from '../../../services/axios';
+import postsService, { PostUpdater } from '../../../services/posts/service';
+import PostComment from './Comment/Comment';
+import "./Post.css";
 
 interface PostState {
     isEditing: boolean;
@@ -16,15 +14,10 @@ interface PostState {
     content: string;
     lastSetContent: string;
     newComment: string;
+    comments: Comment[];
 }
 
-type PostModel = PostProps & { comments: Comment[] };
-
-interface postUpdater {
-    updatePost(post: PostProps): Promise<OperationStatus<Post>>
-}
-
-type Props = LoaderDataProp<PostModel> & postUpdater;
+type Props = LoaderDataProp<PostProps> & PostUpdater;
 
 class Post extends Component<Props, PostState> {
     constructor(props: Props) {
@@ -36,13 +29,15 @@ class Post extends Component<Props, PostState> {
             lastSetContent: '',
             newComment: '',
             isEditing: false,
+            comments: [],
         };
     }
 
     componentDidMount(): void {
         let data = this.props.loaderData;
-        const { title, content } = data;
-        this.setState({ title: title, content: content, lastSetTitle: title, lastSetContent: content });
+        const { title, content, comments } = data;
+        comments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        this.setState({ title: title, content: content, comments: comments, lastSetTitle: title, lastSetContent: content });
     }
 
     handleEdit = () => {
@@ -50,17 +45,12 @@ class Post extends Component<Props, PostState> {
     };
 
     handleSave = async () => {
-        const updatedPost: PostProps = {
-            id: this.props.loaderData.id,
-            userId: this.props.loaderData.userId,
+        const updatedPost: UpdatePost = {
             title: this.state.title,
             content: this.state.content,
-            author: this.props.loaderData.author,
-            createdAt: this.props.loaderData.createdAt,
-            editedAt: this.props.loaderData.editedAt,
         }
 
-        const res = await this.props.updatePost(updatedPost);
+        const res = await this.props.updatePost(this.props.loaderData.id, updatedPost);
         if (res.status !== Status.Success) {
             console.error("failed updating post");
             this.setState({ title: this.state.lastSetTitle, content: this.state.lastSetContent, isEditing: false });
@@ -79,12 +69,23 @@ class Post extends Component<Props, PostState> {
         this.setState({ newComment: e.target.value });
     };
 
-    handleSubmitComment = (e: React.FormEvent<HTMLFormElement>) => {
+    handleSubmitComment = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Here you would submit the new comment to your backend API
-        console.log('Submitted comment:', this.state.newComment);
+        const response = await postsService.addPostComment({ postId: this.props.loaderData.id, content: this.state.newComment });
+        if (response.status !== Status.Success) {
+            console.error("failed adding comment");
+            return;
+        }
+
+        let newCommentState = {};
+
+        if (response.result) {
+            // Add the new comment to the list of comments
+            newCommentState = { comments: [...this.state.comments, response.result] };
+        }
+
         // After submitting the comment, you might want to clear the comment input
-        this.setState({ newComment: '' });
+        this.setState({ ...this.state, ...newCommentState, newComment: '' });
     };
 
 
@@ -98,7 +99,7 @@ class Post extends Component<Props, PostState> {
 
     render() {
         let data = this.props.loaderData;
-        const { id, author, comments } = data;
+        const { id, author } = data;
         const { newComment, isEditing, title, content } = this.state;
 
         return (
@@ -131,16 +132,21 @@ class Post extends Component<Props, PostState> {
                     </CardBody>
                 </Card>
                 <div className="mt-4">
-                    <h6>Comments</h6>
-                    <Row>
-                        <Col sm="12">
-                            <ul className="list-unstyled">
-                                {comments?.map(comment => (
-                                    <li key={comment.id}>{comment.content}</li>
-                                ))}
-                            </ul>
-                        </Col>
-                    </Row>
+                    <h6>Comments {<Badge color="primary" pill>{this.state.comments.length}</Badge>}</h6>
+                    {this.state.comments?.map(comment => (
+                        <Row key={comment.id}>
+                            <Col sm="12" key={comment.id}>
+                                <PostComment
+                                    key={comment.id}
+                                    author={comment.author}
+                                    content={comment.content}
+                                    createdAt={comment.createdAt}
+                                    editedAt={comment.editedAt}
+                                    id={comment.id}
+                                ></PostComment>
+                            </Col>
+                        </Row>
+                    ))}
                 </div>
                 <Row>
                     <Col sm="12">
@@ -164,4 +170,4 @@ class Post extends Component<Props, PostState> {
     }
 }
 
-export default withLoaderData<PostModel>(Post);
+export default withLoaderData<PostProps>(Post);

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using AIOverflow.Models.Posts;
 using AIOverflow.DTOs;
 using AIOverflow.Services.Posts;
 
@@ -18,26 +17,27 @@ namespace AIOverflow.Controllers.Posts
 
         // GET: posts
         [HttpGet("")]
-        public async Task<ActionResult<List<Post>>> GetPostsAsync()
+        public async Task<ActionResult<List<PostDisplayDto>>> GetPostsAsync()
         {
-            return await _postService.GetAllPostsAsync();
+            var posts = await _postService.GetAllPostsAsync();
+            return Ok(posts);
         }
 
         // GET: posts/{id}
-        [HttpGet("{id:int}")] // Specify the type of id to reinforce route matching
-        public async Task<ActionResult<Post>> GetPostByIdAsync(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<PostDisplayDto>> GetPostByIdAsync(int id)
         {
             var post = await _postService.GetPostByIdAsync(id);
             if (post == null)
             {
                 return NotFound();
             }
-            return post;
+            return Ok(post);
         }
 
         // POST: posts
         [HttpPost("")]
-        public async Task<ActionResult<Post>> CreatePostAsync([FromBody] PostCreateDto postDto)
+        public async Task<ActionResult<PostDisplayDto>> CreatePostAsync([FromBody] PostCreateDto postDto)
         {
             var idClaim = User.Claims.FirstOrDefault(c => c.Type == "ID");
             if (idClaim == null)
@@ -51,44 +51,40 @@ namespace AIOverflow.Controllers.Posts
 
         // PUT: posts/{id}
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<Post>> UpdatePostAsync(int id, [FromBody] Post updatedPost)
+        public async Task<IActionResult> UpdatePostAsync(int id, [FromBody] PostUpdateDto postDto)
         {
             try
             {
-                await _postService.UpdatePostAsync(id, updatedPost);
+                await _postService.UpdatePostAsync(id, postDto);
+                return NoContent(); // Indicating successful update without returning data
             }
-
             catch (BadHttpRequestException e)
             {
                 return BadRequest(e.Message);
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
-                if (!String.IsNullOrEmpty(e.Message))
+                if (!string.IsNullOrEmpty(e.Message))
                 {
                     return NotFound();
                 }
-
                 throw;
             }
-
-            return NoContent(); // Consider returning NoContent for PUT as per RESTful conventions
         }
 
         // DELETE: posts/{id}
-        [HttpDelete("{id:int}")] // Specify the type of id to reinforce route matching
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeletePostAsync(int id)
         {
             try
             {
                 await _postService.DeletePostAsync(id);
+                return NoContent(); // Indicates successful deletion without returning data
             }
-            catch (Exception)
+            catch (System.Exception)
             {
                 return NotFound();
             }
-
-            return NoContent(); // Returning NoContent as per RESTful conventions
         }
     }
 }
