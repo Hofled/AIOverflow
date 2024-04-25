@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using AIOverflow.Models.Comments;
 using AIOverflow.Models.Posts;
+using AIOverflow.Models.Likes;
 
 namespace AIOverflow.Identity;
 
@@ -12,6 +13,7 @@ public class User
     public HashSet<UserClaim> Claims { get; set; } = new HashSet<UserClaim>();
     public virtual ICollection<Post> Posts { get; set; }
     public virtual ICollection<Comment> Comments { get; set; }
+    public virtual ICollection<Like> Likes { get; set; }
 
 
     public Claim[] ToClaimsArray()

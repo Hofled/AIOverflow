@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using AIOverflow.Identity;
 using AIOverflow.Models.Posts;
+using AIOverflow.Models.Likes;
 
 namespace AIOverflow.Models.Comments
 {
@@ -10,6 +11,12 @@ namespace AIOverflow.Models.Comments
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime EditedAt { get; set; }
+
+        //navigation properties for likes on the comment
+        public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
+
+
+
 
         // Foreign key
         public int UserId { get; set; }

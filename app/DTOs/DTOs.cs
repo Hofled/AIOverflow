@@ -1,5 +1,22 @@
 namespace AIOverflow.DTOs
 {
+
+
+
+    public class LikeCreateDto
+    {
+        public int CommentId { get; set; }
+    }
+
+    public class LikeDisplayDto
+    {
+        public int Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public UserDto User { get; set; }
+
+        
+    }
+    
     public class CommentCreateDto
     {
         public string Content { get; set; }
@@ -13,6 +30,7 @@ namespace AIOverflow.DTOs
         public DateTime CreatedAt { get; set; }
         public UserDto Author { get; set; }
         // Remove PostDto or any reference that might lead back to PostDto
+        public List<LikeDisplayDto> Likes { get; set; } = new List<LikeDisplayDto>();
     }
 
     public class CommentUpdateDto

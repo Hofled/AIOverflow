@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AIOverflow.Identity;
 using AIOverflow.Models.Posts;
 using AIOverflow.Models.Comments;
+using AIOverflow.Models.Likes;
 using System;
 using AIOverflow.DTOs;
 
@@ -12,6 +13,7 @@ public class PostgresDb : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<Comment> Comments { get; set; }
+    public DbSet<Like> Likes { get; set; }
 
     public PostgresDb(DbContextOptions<PostgresDb> options) : base(options)
     {
@@ -50,6 +52,20 @@ public class PostgresDb : DbContext
             .WithMany(p => p.Comments)
             .HasForeignKey(c => c.PostId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Like Configuration
+        modelBuilder.Entity<Like>()
+            .HasOne(l => l.User)
+            .WithMany(u => u.Likes)
+            .HasForeignKey(l => l.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Like>()
+            .HasOne(l => l.Comment)
+            .WithMany(c => c.Likes)
+            .HasForeignKey(l => l.CommentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
     }
 
     // User CRUD methods
@@ -141,6 +157,8 @@ public class PostgresDb : DbContext
         await SaveChangesAsync();
     }
 
+    // Comment CRUD methods
+
     public async Task<int> AddCommentAsync(Comment comment)
     {
         await Comments.AddAsync(comment);
@@ -180,4 +198,38 @@ public class PostgresDb : DbContext
         Comments.Remove(comment);
         return await SaveChangesAsync();
     }
+
+    // Like CRUD methods
+
+    public async Task<int> AddLikeAsync(Like like)
+    {
+        await Likes.AddAsync(like);
+        return await SaveChangesAsync();
+    }
+
+    public async Task<Like?> GetLikeByIdAsync(int id)
+    {
+        return await Likes.FindAsync(id);
+    }
+
+    public async Task<List<Like>> GetAllLikesByCommentIdAsync(int commentId)
+    {
+        return await Likes
+        .Where(l => l.CommentId == commentId)
+        .ToListAsync();
+    }
+
+    public async Task<int> DeleteLikeAsync(int id)
+    {
+        var like = Likes.Find(id);
+        if (like == null)
+        {
+            throw new Exception("Like not found, unable to delete");
+        }
+
+        Likes.Remove(like);
+        return await SaveChangesAsync();
+    }
+
+    
 }

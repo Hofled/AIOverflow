@@ -32,7 +32,7 @@ services:
     networks:
       - forum-network
     profiles:
-      ["debug"]
+      - debug
 
   pgAdmin:
     image: dpage/pgadmin4:latest
@@ -46,7 +46,7 @@ services:
     networks:
       - forum-network
     profiles:
-      ["debug"]
+      - debug
 
 volumes:
   pgdata:
