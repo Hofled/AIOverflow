@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 import { Card, CardBody, CardTitle, CardText, Badge } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { postRoot } from '../../../routing/consts';
