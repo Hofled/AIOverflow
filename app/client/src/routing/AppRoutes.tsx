@@ -4,10 +4,16 @@ import Home from "../components/Home/Home";
 import NotFound from "../components/NotFound/NotFound";
 import Weather from "../components/Weather/Weather";
 
-import PostsContainer from "../components/Posts/PostsContainer";
+// Post
 import Post from "../components/Posts/Post/Post";
 import { postLoader } from "../components/Posts/Post/loader";
+// Posts
+import Posts from "../components/Posts/Posts";
+import { postsLoader } from "../components/Posts/loader";
+
 import postsService from "../services/posts/service";
+import PostCreationPage from "../components/Posts/PostCreate/PostCreate";
+import { AllPostSubPath, NewPostSubPath, postRoot } from "./consts";
 
 const router = createBrowserRouter([
   {
@@ -23,11 +29,18 @@ const router = createBrowserRouter([
         ]
       },
       {
-        path: "allPosts", Component: PostsContainer,
+        path: postRoot, children: [
+          {
+            path: AllPostSubPath, element: <Posts />, loader: postsLoader,
+          },
+          {
+            path: ":postId", element: <Post updatePost={postsService.updatePost} />, loader: postLoader,
+          },
+          {
+            path: NewPostSubPath, element: <PostCreationPage />,
+          }
+        ]
       },
-      {
-        path: "post/:postId", element: <Post updatePost={postsService.updatePost} />, loader: postLoader,
-      }
     ],
   },
 ]);

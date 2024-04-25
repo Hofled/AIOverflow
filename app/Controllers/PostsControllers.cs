@@ -41,8 +41,14 @@ namespace AIOverflow.Controllers.Posts
         [HttpPost("")]
         public async Task<ActionResult<PostDisplayDto>> CreatePostAsync([FromBody] PostCreateDto postDto)
         {
-            var newPost = await _postService.AddPostAsync(postDto);
-            return CreatedAtAction(nameof(GetPostByIdAsync), new { id = newPost.Id }, newPost);
+            var idClaim = User.Claims.FirstOrDefault(c => c.Type == "ID");
+            if (idClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var newPost = await _postService.AddPostAsync(postDto, int.Parse(idClaim.Value));
+            return CreatedAtAction("GetPostById", new { id = newPost.Id }, newPost);
         }
 
         // PUT: posts/{id}

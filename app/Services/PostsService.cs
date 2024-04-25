@@ -15,14 +15,14 @@ namespace AIOverflow.Services.Posts
             _db = db;
         }
 
-        public async Task<PostDisplayDto> AddPostAsync(PostCreateDto postDto)
+        public async Task<PostDisplayDto> AddPostAsync(PostCreateDto postDto, int userID)
         {
             var now = DateTime.UtcNow;
             var newPost = new Post
             {
                 Title = postDto.Title,
                 Content = postDto.Content,
-                UserId = postDto.UserId,
+                UserId = userID,
                 CreatedAt = now,
                 EditedAt = now
             };
@@ -112,7 +112,7 @@ namespace AIOverflow.Services.Posts
             post.Title = postDto.Title;
             post.Content = postDto.Content;
             post.EditedAt = DateTime.UtcNow;
-            
+
             _db.Posts.Update(post);
             await _db.SaveChangesAsync();
         }
@@ -130,7 +130,7 @@ namespace AIOverflow.Services.Posts
 
     public interface IPostService
     {
-        Task<PostDisplayDto> AddPostAsync(PostCreateDto postDto);
+        Task<PostDisplayDto> AddPostAsync(PostCreateDto postDto, int userID);
         Task<List<PostDisplayDto>> GetAllPostsAsync();
         Task<PostDisplayDto?> GetPostByIdAsync(int id);
         Task UpdatePostAsync(int id, PostUpdateDto postDto);
