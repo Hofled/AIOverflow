@@ -50,6 +50,7 @@ class PostsPage extends Component<LoaderDataProp<PostProps[]>, PostsState> {
                                     id={post.id}
                                     title={post.title}
                                     editedAt={post.editedAt}
+                                    comments={post.comments}
                                 />
                             </Col>
                         </Row>
