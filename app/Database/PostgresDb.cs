@@ -3,6 +3,7 @@ using AIOverflow.Identity;
 using AIOverflow.Models.Posts;
 using AIOverflow.Models.Comments;
 using System;
+using AIOverflow.DTOs;
 
 namespace AIOverflow.Database;
 
@@ -136,5 +137,45 @@ public class PostgresDb : DbContext
 
         Posts.Remove(post);
         await SaveChangesAsync();
+    }
+
+    public async Task<int> AddCommentAsync(Comment comment)
+    {
+        await Comments.AddAsync(comment);
+        await Entry(comment).Reference(c => c.Author).LoadAsync();
+        return await SaveChangesAsync();
+    }
+
+    public async Task<Comment?> GetCommentByIdAsync(int id)
+    {
+        return await Comments
+        .Include(c => c.Author)
+        .FirstOrDefaultAsync(c => c.Id == id);
+    }
+
+    public async Task<List<Comment>> GetAllCommentsByPostIdAsync(int id)
+    {
+        return await Comments
+        .Where(c => c.PostId == id)
+        .Include(c => c.Author)
+        .ToListAsync();
+    }
+
+    public async Task<int> UpdateCommentAsync(Comment updatedComment)
+    {
+        Comments.Update(updatedComment);
+        return await SaveChangesAsync();
+    }
+
+    public async Task<int> DeleteCommentAsync(int id)
+    {
+        var comment = Comments.Find(id);
+        if (comment == null)
+        {
+            throw new Exception("Comment not found, unable to delete");
+        }
+
+        Comments.Remove(comment);
+        return await SaveChangesAsync();
     }
 }

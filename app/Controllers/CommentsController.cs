@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using AIOverflow.DTOs;
 using AIOverflow.Services.Comments;
-using System.Threading.Tasks;
 
 namespace AIOverflow.Controllers.Comments
 {
@@ -16,22 +15,23 @@ namespace AIOverflow.Controllers.Comments
             _commentService = commentService;
         }
 
-        [HttpPost]
+        // POST: Comments
+        [HttpPost("")]
         public async Task<ActionResult<CommentDisplayDto>> CreateComment([FromBody] CommentCreateDto dto)
         {
-            try
+            var idClaim = User.Claims.FirstOrDefault(c => c.Type == "ID");
+            if (idClaim == null)
             {
-                var comment = await _commentService.AddCommentAsync(dto);
-                return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, comment);
+                return Unauthorized();
             }
-            catch (System.Exception e)
-            {
-                return BadRequest(e.Message); // Handle exceptions according to the nature of the error
-            }
+
+            var comment = await _commentService.AddCommentAsync(dto, int.Parse(idClaim.Value));
+            return CreatedAtAction(nameof(GetCommentById), new { id = comment.Id }, comment);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<CommentDisplayDto>> GetComment(int id)
+        // GET: comments/{id}
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<CommentDisplayDto>> GetCommentById(int id)
         {
             var comment = await _commentService.GetCommentByIdAsync(id);
             if (comment == null)
@@ -41,14 +41,11 @@ namespace AIOverflow.Controllers.Comments
             return Ok(comment);
         }
 
-        [HttpGet("ByPost/{postId}")]
+        // GET: comments/post/{id}
+        [HttpGet("post/{id:int}")]
         public async Task<ActionResult<List<CommentDisplayDto>>> GetCommentsByPostId(int postId)
         {
             var comments = await _commentService.GetAllCommentsByPostIdAsync(postId);
-            if (comments == null || !comments.Any())
-            {
-                return NotFound($"No comments found for post with ID {postId}.");
-            }
             return Ok(comments);
         }
 
@@ -61,7 +58,7 @@ namespace AIOverflow.Controllers.Comments
                 await _commentService.UpdateCommentAsync(id, commentDto);
                 return NoContent(); // Indicates successful update without returning data
             }
-            catch (System.Exception e)
+            catch (BadHttpRequestException e)
             {
                 return BadRequest(e.Message);
             }
@@ -75,9 +72,9 @@ namespace AIOverflow.Controllers.Comments
                 await _commentService.DeleteCommentAsync(id);
                 return NoContent(); // Indicates successful deletion without returning data
             }
-            catch (System.Exception e)
+            catch (System.Exception)
             {
-                return BadRequest(e.Message);
+                return NotFound();
             }
         }
     }

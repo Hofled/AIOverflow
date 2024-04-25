@@ -28,13 +28,13 @@ namespace AIOverflow.Services.Posts
             await _db.AddPostAsync(newPost);
 
             // Convert to DTO before returning
-            return _ConvertPostToDto(newPost);
+            return _ToPostDisplayDto(newPost);
         }
 
         public async Task<List<PostDisplayDto>> GetAllPostsAsync()
         {
             var posts = await _db.GetAllPostsAsync();
-            return posts.Select(p => _ConvertPostToDto(p)).ToList();
+            return posts.Select(p => _ToPostDisplayDto(p)).ToList();
         }
 
         public async Task<PostDisplayDto?> GetPostByIdAsync(int id)
@@ -46,7 +46,7 @@ namespace AIOverflow.Services.Posts
                 return null;
             };
 
-            return _ConvertPostToDto(post);
+            return _ToPostDisplayDto(post);
         }
 
         public async Task UpdatePostAsync(int id, PostUpdateDto postDto)
@@ -69,7 +69,7 @@ namespace AIOverflow.Services.Posts
             await _db.DeletePostAsync(id);
         }
 
-        private PostDisplayDto _ConvertPostToDto(Post post)
+        private PostDisplayDto _ToPostDisplayDto(Post post)
         {
             return new PostDisplayDto
             {
