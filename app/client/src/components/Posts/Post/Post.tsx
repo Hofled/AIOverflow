@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, Input, Button } from 'reactstrap';
-import { Post as PostProps } from "../../../services/posts/models";
+import { Post as PostProps, UpdatePost } from "../../../services/posts/models";
 import { LoaderDataProp, withLoaderData } from '../../../routing/wrappers';
 import { OperationStatus, Status } from '../../../services/axios';
 
@@ -21,7 +21,7 @@ interface PostState {
 type PostModel = PostProps & { comments: Comment[] };
 
 interface postUpdater {
-    updatePost(post: PostProps): Promise<OperationStatus<Post>>
+    updatePost(updatePost: UpdatePost): Promise<OperationStatus<Post>>
 }
 
 type Props = LoaderDataProp<PostModel> & postUpdater;
@@ -50,14 +50,9 @@ class Post extends Component<Props, PostState> {
     };
 
     handleSave = async () => {
-        const updatedPost: PostProps = {
-            id: this.props.loaderData.id,
-            userId: this.props.loaderData.userId,
+        const updatedPost: UpdatePost = {
             title: this.state.title,
             content: this.state.content,
-            author: this.props.loaderData.author,
-            createdAt: this.props.loaderData.createdAt,
-            editedAt: this.props.loaderData.editedAt,
         }
 
         const res = await this.props.updatePost(updatedPost);

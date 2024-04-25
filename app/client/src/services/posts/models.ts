@@ -34,6 +34,11 @@ export let APIPostToPost = (post: APIPost): Post => {
     };
 };
 
+export interface UpdatePost {
+    title: string;
+    content: string;
+}
+
 export interface NewPost {
     title: string;
     content: string;

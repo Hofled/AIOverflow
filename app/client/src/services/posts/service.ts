@@ -1,6 +1,6 @@
 import { AxiosHeaders, AxiosResponse } from "axios";
 import { OperationStatus, axiosRequest, wrapFail, wrapSuccess } from "../axios";
-import { APIPost, NewPost, Post } from "./models";
+import { APIPost, NewPost, Post, UpdatePost } from "./models";
 import { postsPrefix } from "./consts";
 
 class PostsService {
@@ -12,8 +12,8 @@ class PostsService {
         return axiosRequest<Post, any>(`${postsPrefix}/${postId}`, "GET", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r));
     }
 
-    async updatePost(post: Post): Promise<OperationStatus<null>> {
-        return axiosRequest<Post, any>(`${postsPrefix}/${post.id}`, "PUT", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r), post);
+    async updatePost(postID: number, updatePost: UpdatePost): Promise<OperationStatus<null>> {
+        return axiosRequest<Post, any>(`${postsPrefix}/${postID}`, "PUT", (r: AxiosResponse<Post>) => wrapSuccess(r.data), (r) => wrapFail(r), updatePost);
     }
 
     async createPost(newPost: NewPost): Promise<OperationStatus<null>> {

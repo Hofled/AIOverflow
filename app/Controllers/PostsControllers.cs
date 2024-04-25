@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using AIOverflow.DTOs;
 using AIOverflow.Services.Posts;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace AIOverflow.Controllers.Posts
 {
