@@ -16,15 +16,17 @@ namespace AIOverflow.Controllers.Likes
             _likeService = likeService;
         }
 
-        // POST: likes
-        [HttpPost("")]
-        public async Task<ActionResult<LikeDisplayDto>> CreateLike([FromBody] LikeCreateDto dto, int userID)
+     [HttpPost("")]
+    public async Task<ActionResult<LikeDisplayDto>> CreateLike([FromBody] LikeCreateDto dto)
+    {
+        var like = await _likeService.AddLikeAsync(dto);
+        if (like == null)
         {
-        
-
-            var like = await _likeService.AddLikeAsync(dto, userID);
-            return CreatedAtAction(nameof(GetLikeById), new { id = like.Id }, like);
+            return BadRequest("Failed to create like");
         }
+        return CreatedAtAction(nameof(GetLikeById), new { id = like.Id }, like);
+    }
+
 
         // GET: likes/{id}
         [HttpGet("{id:int}")]

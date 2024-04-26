@@ -17,7 +17,7 @@ public class PostgresDb : DbContext
 
     public PostgresDb(DbContextOptions<PostgresDb> options) : base(options)
     {
-        // Removed automatic migration call. Best to handle migrations manually or through a controlled deployment process.
+        Database.Migrate();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

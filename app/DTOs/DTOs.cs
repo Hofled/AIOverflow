@@ -6,6 +6,7 @@ namespace AIOverflow.DTOs
     public class LikeCreateDto
     {
         public int CommentId { get; set; }
+        public int UserId { get; set; } 
     }
 
     public class LikeDisplayDto
@@ -13,6 +14,8 @@ namespace AIOverflow.DTOs
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserDto User { get; set; }
+        public int UserId { get; set; }    // Ensures the UserID is included in the DTO
+         public int CommentId { get; set; }
 
         
     }

@@ -6,7 +6,7 @@ namespace AIOverflow.Services.Likes
 {
     public interface ILikeService
     {
-        Task<LikeDisplayDto> AddLikeAsync(LikeCreateDto likeDto, int authorID);
+        Task<LikeDisplayDto> AddLikeAsync(LikeCreateDto likeDto);
         Task<LikeDisplayDto?> GetLikeByIdAsync(int id);
         Task<List<LikeDisplayDto>> GetAllLikesByCommentIdAsync(int commentId);
         Task DeleteLikeAsync(int id);
@@ -20,22 +20,24 @@ namespace AIOverflow.Services.Likes
         {
             _db = db;
         }
-        public async Task<LikeDisplayDto> AddLikeAsync(LikeCreateDto likeDto, int authorID)
+    public async Task<LikeDisplayDto> AddLikeAsync(LikeCreateDto likeDto)
+    {
+        Console.WriteLine("Adding a like to a comment");
+        Console.WriteLine($"Comment ID: {likeDto.CommentId}, User ID: {likeDto.UserId}");
+
+        var newLike = new Like
         {
-            
-            var now = DateTime.UtcNow;
+            CommentId = likeDto.CommentId,
+            UserId = likeDto.UserId,
+            CreatedAt = DateTime.UtcNow,
+        };
 
-            var newLike = new Like
-            {
-                CommentId = likeDto.CommentId,
-                UserId = authorID,
-                CreatedAt = now,
-            };
+        await _db.AddLikeAsync(newLike);
+        await _db.SaveChangesAsync(); // Ensure changes are committed to the database.
 
-            await _db.AddLikeAsync(newLike);
+        return _ToLikeDisplayDto(newLike);
+    }
 
-            return _ToLikeDisplayDto(newLike);
-        }
 
         public async Task<LikeDisplayDto?> GetLikeByIdAsync(int id)
         {
@@ -57,22 +59,26 @@ namespace AIOverflow.Services.Likes
         {
             await _db.DeleteLikeAsync(id);
         }
-
-        private static LikeDisplayDto _ToLikeDisplayDto(Like like)
+    private LikeDisplayDto _ToLikeDisplayDto(Like like)
+    {
+        var userDto = like.User != null ? new UserDto
         {
-            return new LikeDisplayDto
-            {
-                Id = like.Id,
-                CreatedAt = like.CreatedAt,
-                
-                User = new UserDto
-                {
-                    Id = like.User.Id,
-                    Name = like.User.Name,
-              
-                },
-            };
-        }
+            Id = like.User.Id,
+            Name = like.User.Name
+        } : null;  // Handle null User properly
+
+        return new LikeDisplayDto
+        {
+            Id = like.Id,
+            CreatedAt = like.CreatedAt,
+            User = userDto,
+            UserId = like.UserId,      // Set the UserId
+            CommentId = like.CommentId // Set the CommentId
+        };
+    }
+
+
+
 
     }
 }

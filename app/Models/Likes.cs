@@ -6,10 +6,10 @@ using AIOverflow.Models.Comments;
 
 namespace AIOverflow.Models.Likes
 {
-    public class Like
+     public class Like
     {
         public int Id { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
 
         // Foreign key
         public int UserId { get; set; }
@@ -19,8 +19,7 @@ namespace AIOverflow.Models.Likes
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
 
-        [ForeignKey("PostId")]
-        
+        [ForeignKey("CommentId")] 
         public virtual Comment Comment { get; set; }
     }
 }
