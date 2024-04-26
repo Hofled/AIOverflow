@@ -48,22 +48,31 @@ namespace AIOverflow.Services.Comments
 
 
 
-        public async Task<CommentDisplayDto?> GetCommentByIdAsync(int id)
+      public async Task<CommentDisplayDto?> GetCommentByIdAsync(int id)
         {
-            var comment = await _db.GetCommentByIdAsync(id);
+            var comment = await _db.Comments
+                .Include(c => c.Author)
+                .Include(c => c.Likes) // Include likes in the query
+                .ThenInclude(l => l.User) // Optionally include the user who liked the comment
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (comment == null) return null;
 
             return _ToCommentDisplayDto(comment);
         }
 
-
         public async Task<List<CommentDisplayDto>> GetAllCommentsByPostIdAsync(int postId)
         {
-            var comments = await _db.GetAllCommentsByPostIdAsync(postId);
+            var comments = await _db.Comments
+                .Where(c => c.PostId == postId)
+                .Include(c => c.Author)
+                .Include(c => c.Likes) // Include likes in the query
+                .ThenInclude(l => l.User) // Optionally include the user who liked the comment
+                .ToListAsync();
 
-            return comments.Select(c => _ToCommentDisplayDto(c)).ToList();
+            return comments.Select(_ToCommentDisplayDto).ToList();
         }
+
 
         public async Task UpdateCommentAsync(int id, CommentUpdateDto commentDto)
         {
@@ -83,15 +92,26 @@ namespace AIOverflow.Services.Comments
             await _db.DeleteCommentAsync(id);
         }
 
-        private CommentDisplayDto _ToCommentDisplayDto(Comment comment)
+    private CommentDisplayDto _ToCommentDisplayDto(Comment comment)
+    {
+        var likesDtos = comment.Likes?.Select(l => new LikeDisplayDto
         {
-            return new CommentDisplayDto
-            {
-                Id = comment.Id,
-                Content = comment.Content,
-                CreatedAt = comment.CreatedAt,
-                Author = new UserDto { Id = comment.Author.Id, Name = comment.Author.Name }
-            };
-        }
+            Id = l.Id,
+            CreatedAt = l.CreatedAt,
+            UserId = l.UserId,
+            CommentId = l.CommentId,
+            User = l.User != null ? new UserDto { Id = l.User.Id, Name = l.User.Name } : null
+        }).ToList();
+
+        return new CommentDisplayDto
+        {
+            Id = comment.Id,
+            Content = comment.Content,
+            CreatedAt = comment.CreatedAt,
+            Author = new UserDto { Id = comment.Author.Id, Name = comment.Author.Name },
+            Likes = likesDtos ?? new List<LikeDisplayDto>() // Ensure this is not null
+        };
+    }
+
     }
 }
