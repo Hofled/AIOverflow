@@ -3,10 +3,8 @@ using AIOverflow.Identity;
 using AIOverflow.Services.Posts;
 using AIOverflow.Services.Users;
 using AIOverflow.Services.Comments;
-using AIOverflow.Services.Likes;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Builder;
 
 
 string? secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
@@ -54,7 +52,6 @@ static void AddScopedServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<IPostService, PostsService>();
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<ICommentService, CommentsService>();
-    builder.Services.AddScoped<ILikeService, LikesService>();
 
 }
 

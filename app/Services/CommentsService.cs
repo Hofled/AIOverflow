@@ -1,7 +1,6 @@
 using AIOverflow.Database;
 using AIOverflow.DTOs;
 using AIOverflow.Models.Comments;
-using Microsoft.EntityFrameworkCore;
 
 namespace AIOverflow.Services.Comments
 {
@@ -12,6 +11,7 @@ namespace AIOverflow.Services.Comments
         Task<List<CommentDisplayDto>> GetAllCommentsByPostIdAsync(int postId);
         Task UpdateCommentAsync(int id, CommentUpdateDto commentDto);
         Task DeleteCommentAsync(int id);
+        Task<int> SetCommentVoteAsync(int commentId, SetVoteDto voteUpdateDto);
     }
 
     public class CommentsService : ICommentService
@@ -24,12 +24,6 @@ namespace AIOverflow.Services.Comments
         }
         public async Task<CommentDisplayDto> AddCommentAsync(CommentCreateDto commentDto, int authorID)
         {
-            // if (!await _db.Posts.AnyAsync(p => p.Id == commentDto.PostId))
-            //     throw new ArgumentException("Post with the provided ID does not exist");
-
-            // if (!await _db.Users.AnyAsync(u => u.Id == commentDto.UserId))
-            //     throw new ArgumentException("User with the provided ID does not exist.");
-
             var now = DateTime.UtcNow;
 
             var newComment = new Comment
@@ -48,13 +42,9 @@ namespace AIOverflow.Services.Comments
 
 
 
-      public async Task<CommentDisplayDto?> GetCommentByIdAsync(int id)
+        public async Task<CommentDisplayDto?> GetCommentByIdAsync(int id)
         {
-            var comment = await _db.Comments
-                .Include(c => c.Author)
-                .Include(c => c.Likes) // Include likes in the query
-                .ThenInclude(l => l.User) // Optionally include the user who liked the comment
-                .FirstOrDefaultAsync(c => c.Id == id);
+            var comment = await _db.GetCommentByIdAsync(id);
 
             if (comment == null) return null;
 
@@ -63,12 +53,7 @@ namespace AIOverflow.Services.Comments
 
         public async Task<List<CommentDisplayDto>> GetAllCommentsByPostIdAsync(int postId)
         {
-            var comments = await _db.Comments
-                .Where(c => c.PostId == postId)
-                .Include(c => c.Author)
-                .Include(c => c.Likes) // Include likes in the query
-                .ThenInclude(l => l.User) // Optionally include the user who liked the comment
-                .ToListAsync();
+            var comments = await _db.GetAllCommentsByPostIdAsync(postId);
 
             return comments.Select(_ToCommentDisplayDto).ToList();
         }
@@ -92,26 +77,29 @@ namespace AIOverflow.Services.Comments
             await _db.DeleteCommentAsync(id);
         }
 
-    private CommentDisplayDto _ToCommentDisplayDto(Comment comment)
-    {
-        var likesDtos = comment.Likes?.Select(l => new LikeDisplayDto
+        public async Task<int> SetCommentVoteAsync(int commentId, SetVoteDto setVoteDto)
         {
-            Id = l.Id,
-            CreatedAt = l.CreatedAt,
-            UserId = l.UserId,
-            CommentId = l.CommentId,
-            User = l.User != null ? new UserDto { Id = l.User.Id, Name = l.User.Name } : null
-        }).ToList();
+            return await _db.SetCommentVoteAsync(commentId, setVoteDto.UserId, setVoteDto.Score);
+        }
 
-        return new CommentDisplayDto
+        private CommentDisplayDto _ToCommentDisplayDto(Comment comment)
         {
-            Id = comment.Id,
-            Content = comment.Content,
-            CreatedAt = comment.CreatedAt,
-            Author = new UserDto { Id = comment.Author.Id, Name = comment.Author.Name },
-            Likes = likesDtos ?? new List<LikeDisplayDto>() // Ensure this is not null
-        };
-    }
+            var likesDtos = comment.Likes.Select(l => new LikeDisplayDto
+            {
+                Id = l.Id,
+                CreatedAt = l.CreatedAt,
+                Score = l.Score,
+                User = new UserDto { Id = l.User.Id, Name = l.User.Name }
+            }).ToList();
 
+            return new CommentDisplayDto
+            {
+                Id = comment.Id,
+                Content = comment.Content,
+                CreatedAt = comment.CreatedAt,
+                Author = new UserDto { Id = comment.Author.Id, Name = comment.Author.Name },
+                Likes = likesDtos
+            };
+        }
     }
 }

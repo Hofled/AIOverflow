@@ -1,25 +1,19 @@
 namespace AIOverflow.DTOs
 {
-
-
-
-    public class LikeCreateDto
-    {
-        public int CommentId { get; set; }
-        public int UserId { get; set; } 
-    }
-
     public class LikeDisplayDto
     {
         public int Id { get; set; }
+        public int Score { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserDto User { get; set; }
-        public int UserId { get; set; }    // Ensures the UserID is included in the DTO
-         public int CommentId { get; set; }
-
-        
     }
-    
+
+    public class SetVoteDto
+    {
+        public int Score { get; set; }
+        public int UserId { get; set; }
+    }
+
     public class CommentCreateDto
     {
         public string Content { get; set; }
@@ -62,6 +56,7 @@ namespace AIOverflow.DTOs
         public DateTime EditedAt { get; set; }
         public UserDto Author { get; set; }
         public List<CommentDisplayDto> Comments { get; set; } = new List<CommentDisplayDto>();
+        public List<LikeDisplayDto> Likes { get; set; } = new List<LikeDisplayDto>();
     }
 
     public class PostUpdateDto

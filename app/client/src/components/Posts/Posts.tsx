@@ -51,6 +51,7 @@ class PostsPage extends Component<LoaderDataProp<PostProps[]>, PostsState> {
                                     title={post.title}
                                     editedAt={post.editedAt}
                                     comments={post.comments}
+                                    likes={post.likes}
                                 />
                             </Col>
                         </Row>

@@ -50,7 +50,7 @@ namespace AIOverflow.Controllers.Comments
         }
 
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateComment(int id, [FromBody] CommentUpdateDto commentDto)
         {
             try
@@ -64,13 +64,27 @@ namespace AIOverflow.Controllers.Comments
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
             try
             {
                 await _commentService.DeleteCommentAsync(id);
                 return NoContent(); // Indicates successful deletion without returning data
+            }
+            catch (System.Exception)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpPost("{id:int}/setVoteScore")]
+        public async Task<ActionResult<int>> SetCommentVoteScoreAsync(int id, [FromBody] SetVoteDto setVoteUDto)
+        {
+            try
+            {
+                var newScore = await _commentService.SetCommentVoteAsync(id, setVoteUDto);
+                return Ok(newScore);
             }
             catch (System.Exception)
             {

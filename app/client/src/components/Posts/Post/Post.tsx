@@ -137,12 +137,13 @@ class Post extends Component<Props, PostState> {
                         <Row key={comment.id}>
                             <Col sm="12" key={comment.id}>
                                 <PostComment
+                                    id={comment.id}
                                     key={comment.id}
                                     author={comment.author}
                                     content={comment.content}
                                     createdAt={comment.createdAt}
                                     editedAt={comment.editedAt}
-                                    id={comment.id}
+                                    likes={comment.likes}
                                 ></PostComment>
                             </Col>
                         </Row>

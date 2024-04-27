@@ -86,5 +86,20 @@ namespace AIOverflow.Controllers.Posts
                 return NotFound();
             }
         }
+
+        // POST: posts/{id}/setVoteScore
+        [HttpPost("{id:int}/setVoteScore")]
+        public async Task<ActionResult<int>> SetPostVoteScore(int id, [FromBody] SetVoteDto setVoteDto)
+        {
+            try
+            {
+                var newScore = await _postService.SetPostVoteAsync(id, setVoteDto);
+                return Ok(newScore);
+            }
+            catch (System.Exception)
+            {
+                return NotFound();
+            }
+        }
     }
 }

@@ -64,8 +64,17 @@ public class PostgresDb : DbContext
             .WithMany(c => c.Likes)
             .HasForeignKey(l => l.CommentId)
             .OnDelete(DeleteBehavior.Cascade);
-
-
+        modelBuilder.Entity<Like>()
+            .HasOne(l => l.Post)
+            .WithMany(c => c.Likes)
+            .HasForeignKey(l => l.PostId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Like>()
+            .HasKey(l => new { l.UserId, l.CommentId })
+            .HasName("Like_CommendKey");
+        modelBuilder.Entity<Like>()
+            .HasKey(l => new { l.UserId, l.PostId })
+            .HasName("Like_PostKey");
     }
 
     // User CRUD methods
@@ -158,7 +167,6 @@ public class PostgresDb : DbContext
     }
 
     // Comment CRUD methods
-
     public async Task<int> AddCommentAsync(Comment comment)
     {
         await Comments.AddAsync(comment);
@@ -170,6 +178,8 @@ public class PostgresDb : DbContext
     {
         return await Comments
         .Include(c => c.Author)
+        .Include(c => c.Likes)
+        .ThenInclude(l => l.User)
         .FirstOrDefaultAsync(c => c.Id == id);
     }
 
@@ -178,6 +188,8 @@ public class PostgresDb : DbContext
         return await Comments
         .Where(c => c.PostId == id)
         .Include(c => c.Author)
+        .Include(c => c.Likes)
+        .ThenInclude(l => l.User)
         .ToListAsync();
     }
 
@@ -200,36 +212,77 @@ public class PostgresDb : DbContext
     }
 
     // Like CRUD methods
-
     public async Task<int> AddLikeAsync(Like like)
     {
         await Likes.AddAsync(like);
         return await SaveChangesAsync();
     }
 
-    public async Task<Like?> GetLikeByIdAsync(int id)
+    public async Task DeleteLikeAsync(Like like)
     {
-        return await Likes.FindAsync(id);
+        Likes.Remove(like);
+        await SaveChangesAsync();
     }
 
-    public async Task<List<Like>> GetAllLikesByCommentIdAsync(int commentId)
+    public async Task UpdateLikeAsync(Like like)
     {
-        return await Likes
-        .Where(l => l.CommentId == commentId)
-        .ToListAsync();
+        Likes.Update(like);
+        await SaveChangesAsync();
     }
 
-    public async Task<int> DeleteLikeAsync(int id)
+    public async Task<int> SetCommentVoteAsync(int commentId, int userId, int score)
     {
-        var like = Likes.Find(id);
+        var like = await Likes.SingleOrDefaultAsync(l => l.CommentId == commentId && l.UserId == userId);
         if (like == null)
         {
-            throw new Exception("Like not found, unable to delete");
+            like = new Like
+            {
+                CommentId = commentId,
+                UserId = userId,
+                Score = score,
+                CreatedAt = DateTime.UtcNow
+            };
+            await AddLikeAsync(like);
+            return score;
         }
-
-        Likes.Remove(like);
-        return await SaveChangesAsync();
+        else
+        {
+            return await handleExistingLikeAsync(like, score);
+        }
     }
 
-    
+    public async Task<int> SetPostVoteAsync(int postId, int userId, int score)
+    {
+        var like = await Likes.SingleOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
+        if (like == null)
+        {
+            like = new Like
+            {
+                PostId = postId,
+                UserId = userId,
+                Score = score,
+                CreatedAt = DateTime.UtcNow
+            };
+            await AddLikeAsync(like);
+            return score;
+        }
+        else
+        {
+            return await handleExistingLikeAsync(like, score);
+        }
+    }
+
+    private async Task<int> handleExistingLikeAsync(Like like, int score)
+    {
+        var calculatedScore = like.Score - score;
+        if (calculatedScore == 0)
+        {
+            await DeleteLikeAsync(like);
+            return 0;
+        }
+
+        like.Score = score;
+        await UpdateLikeAsync(like);
+        return score;
+    }
 }

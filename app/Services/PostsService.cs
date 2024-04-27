@@ -4,6 +4,16 @@ using AIOverflow.Models.Posts;
 
 namespace AIOverflow.Services.Posts
 {
+    public interface IPostService
+    {
+        Task<PostDisplayDto> AddPostAsync(PostCreateDto postDto, int userID);
+        Task<List<PostDisplayDto>> GetAllPostsAsync();
+        Task<PostDisplayDto?> GetPostByIdAsync(int id);
+        Task UpdatePostAsync(int id, PostUpdateDto postDto);
+        Task DeletePostAsync(int id);
+        Task<int> SetPostVoteAsync(int id, SetVoteDto setVoteDto);
+    }
+
     public class PostsService : IPostService
     {
         private readonly PostgresDb _db;
@@ -68,6 +78,11 @@ namespace AIOverflow.Services.Posts
             await _db.DeletePostAsync(id);
         }
 
+        public async Task<int> SetPostVoteAsync(int id, SetVoteDto setVoteDto)
+        {
+            return await _db.SetPostVoteAsync(id, setVoteDto.UserId, setVoteDto.Score);
+        }
+
         private PostDisplayDto _ToPostDisplayDto(Post post)
         {
             return new PostDisplayDto
@@ -84,17 +99,15 @@ namespace AIOverflow.Services.Posts
                     Content = c.Content,
                     CreatedAt = c.CreatedAt,
                     Author = new UserDto { Id = c.Author.Id, Name = c.Author.Name }
+                }).ToList(),
+                Likes = post.Likes.Select(l => new LikeDisplayDto
+                {
+                    Id = l.Id,
+                    CreatedAt = l.CreatedAt,
+                    User = new UserDto { Id = l.User.Id, Name = l.User.Name },
+                    Score = l.Score
                 }).ToList()
             };
         }
-    }
-
-    public interface IPostService
-    {
-        Task<PostDisplayDto> AddPostAsync(PostCreateDto postDto, int userID);
-        Task<List<PostDisplayDto>> GetAllPostsAsync();
-        Task<PostDisplayDto?> GetPostByIdAsync(int id);
-        Task UpdatePostAsync(int id, PostUpdateDto postDto);
-        Task DeletePostAsync(int id);
     }
 }
