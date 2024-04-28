@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AIOverflow.Migrations
 {
     [DbContext(typeof(PostgresDb))]
-    [Migration("20240426222013_AddNewModel")]
-    partial class AddNewModel
+    [Migration("20240427163630_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -109,7 +109,7 @@ namespace AIOverflow.Migrations
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("AIOverflow.Models.Likes.Like", b =>
+            modelBuilder.Entity("AIOverflow.Models.Likes.CommentLike", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -123,6 +123,9 @@ namespace AIOverflow.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
@@ -132,7 +135,36 @@ namespace AIOverflow.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Likes");
+                    b.ToTable("CommentLikes");
+                });
+
+            modelBuilder.Entity("AIOverflow.Models.Likes.PostLike", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PostLikes");
                 });
 
             modelBuilder.Entity("AIOverflow.Models.Posts.Post", b =>
@@ -194,7 +226,7 @@ namespace AIOverflow.Migrations
                     b.Navigation("Post");
                 });
 
-            modelBuilder.Entity("AIOverflow.Models.Likes.Like", b =>
+            modelBuilder.Entity("AIOverflow.Models.Likes.CommentLike", b =>
                 {
                     b.HasOne("AIOverflow.Models.Comments.Comment", "Comment")
                         .WithMany("Likes")
@@ -203,12 +235,31 @@ namespace AIOverflow.Migrations
                         .IsRequired();
 
                     b.HasOne("AIOverflow.Identity.User", "User")
-                        .WithMany("Likes")
+                        .WithMany("CommentLikes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Comment");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AIOverflow.Models.Likes.PostLike", b =>
+                {
+                    b.HasOne("AIOverflow.Models.Posts.Post", "Post")
+                        .WithMany("Likes")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AIOverflow.Identity.User", "User")
+                        .WithMany("PostLikes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
 
                     b.Navigation("User");
                 });
@@ -228,9 +279,11 @@ namespace AIOverflow.Migrations
                 {
                     b.Navigation("Claims");
 
+                    b.Navigation("CommentLikes");
+
                     b.Navigation("Comments");
 
-                    b.Navigation("Likes");
+                    b.Navigation("PostLikes");
 
                     b.Navigation("Posts");
                 });
@@ -243,6 +296,8 @@ namespace AIOverflow.Migrations
             modelBuilder.Entity("AIOverflow.Models.Posts.Post", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("Likes");
                 });
 #pragma warning restore 612, 618
         }

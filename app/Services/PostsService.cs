@@ -11,7 +11,7 @@ namespace AIOverflow.Services.Posts
         Task<PostDisplayDto?> GetPostByIdAsync(int id);
         Task UpdatePostAsync(int id, PostUpdateDto postDto);
         Task DeletePostAsync(int id);
-        Task<int> SetPostVoteAsync(int id, SetVoteDto setVoteDto);
+        Task<int> SetPostLikeAsync(int id, int userId, int score);
     }
 
     public class PostsService : IPostService
@@ -78,9 +78,9 @@ namespace AIOverflow.Services.Posts
             await _db.DeletePostAsync(id);
         }
 
-        public async Task<int> SetPostVoteAsync(int id, SetVoteDto setVoteDto)
+        public async Task<int> SetPostLikeAsync(int id, int userId, int score)
         {
-            return await _db.SetPostVoteAsync(id, setVoteDto.UserId, setVoteDto.Score);
+            return await _db.SetPostLikeAsync(id, userId, score);
         }
 
         private PostDisplayDto _ToPostDisplayDto(Post post)

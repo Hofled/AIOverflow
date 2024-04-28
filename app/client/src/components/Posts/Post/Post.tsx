@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, Input, Button, Badge } from 'reactstrap';
-import { Post as PostProps, UpdatePost, Comment } from "../../../services/posts/models";
+import { Post as PostProps, UpdatePost, Comment, Like } from "../../../services/posts/models";
 import { LoaderDataProp, withLoaderData } from '../../../routing/wrappers';
 import { Status } from '../../../services/axios';
 import postsService, { PostUpdater } from '../../../services/posts/service';
 import PostComment from './Comment/Comment';
+import { FaThumbsDown, FaThumbsUp } from 'react-icons/fa';
 import "./Post.css";
 
 interface PostState {
@@ -15,6 +16,11 @@ interface PostState {
     lastSetContent: string;
     newComment: string;
     comments: Comment[];
+    likes: Like[];
+    likeCount: number;
+    dislikeCount: number;
+    userLiked: boolean;
+    userDisliked: boolean;
 }
 
 type Props = LoaderDataProp<PostProps> & PostUpdater;
@@ -30,14 +36,34 @@ class Post extends Component<Props, PostState> {
             newComment: '',
             isEditing: false,
             comments: [],
+            likes: [],
+            likeCount: 0,
+            dislikeCount: 0,
+            userLiked: false,
+            userDisliked: false,
         };
     }
 
     componentDidMount(): void {
         let data = this.props.loaderData;
-        const { title, content, comments } = data;
+        const { title, content, comments, likes } = data;
+        const likeCount = likes.filter(like => like.score === 1).length;
+        const dislikeCount = likes.filter(like => like.score === -1).length;
+        const userLiked = likes.some(like => like.score === 1);
+        const userDisliked = likes.some(like => like.score === -1);
         comments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-        this.setState({ title: title, content: content, comments: comments, lastSetTitle: title, lastSetContent: content });
+        this.setState({
+            title: title,
+            content: content,
+            comments: comments,
+            likes: likes,
+            likeCount: likeCount,
+            dislikeCount: dislikeCount,
+            userLiked: userLiked,
+            userDisliked: userDisliked,
+            lastSetTitle: title,
+            lastSetContent: content
+        });
     }
 
     handleEdit = () => {
@@ -84,8 +110,7 @@ class Post extends Component<Props, PostState> {
             newCommentState = { comments: [...this.state.comments, response.result] };
         }
 
-        // After submitting the comment, you might want to clear the comment input
-        this.setState({ ...this.state, ...newCommentState, newComment: '' });
+        this.setState({ ...newCommentState, newComment: '' });
     };
 
 
@@ -97,14 +122,80 @@ class Post extends Component<Props, PostState> {
         this.setState({ content: e.target.value });
     };
 
+    handleLike = async () => {
+        const { userLiked } = this.state;
+        if (userLiked) return; // Do nothing if already liked
+        await this.submitLike(1);
+        this.setState(prevState => ({
+            likeCount: prevState.likeCount + 1,
+            userLiked: true,
+            userDisliked: false,
+        }));
+    };
+
+    handleDislike = async () => {
+        const { userDisliked } = this.state;
+        if (userDisliked) return; // Do nothing if already disliked
+        await this.submitLike(-1);
+        this.setState(prevState => ({
+            dislikeCount: prevState.dislikeCount + 1,
+            userLiked: false,
+            userDisliked: true,
+        }));
+    };
+
+    async submitLike(score: number) {
+        const response = await postsService.setPostVoteScore(this.props.loaderData.id, score);
+        if (response.status !== Status.Success) {
+            console.error("failed adding like");
+            return;
+        }
+
+        let likeState: { userLiked: boolean, userDisliked: boolean };
+
+        const newScore = response.result;
+        switch (newScore) {
+            case 1:
+                {
+                    likeState = { userLiked: true, userDisliked: false };
+                    break;
+                }
+            case -1:
+                {
+                    likeState = { userLiked: false, userDisliked: true };
+                    break;
+                }
+            case 0:
+                {
+                    likeState = { userLiked: false, userDisliked: false };
+                    break;
+                }
+            default:
+                console.error("invalid score");
+                return;
+        }
+
+        this.setState(likeState);
+    }
+
     render() {
         let data = this.props.loaderData;
         const { id, author } = data;
-        const { newComment, isEditing, title, content } = this.state;
+        const { newComment, isEditing, title, content, likeCount, dislikeCount, userLiked, userDisliked } = this.state;
 
         return (
             <div className="my-4 mx-4">
                 <Card className="my-4 mx-4">
+                    <div className="like-dislike-indicators">
+                        <div className={`like-indicator ${userLiked ? 'active' : ''}`} onClick={this.handleLike}>
+                            <FaThumbsUp />
+                            <span>{likeCount}</span>
+                        </div>
+                        <div className={`dislike-indicator ${userDisliked ? 'active' : ''}`} onClick={this.handleDislike}>
+                            <FaThumbsDown />
+                            <span>{dislikeCount}</span>
+                        </div>
+                    </div>
                     <CardBody>
                         {isEditing ? (
                             <Form>

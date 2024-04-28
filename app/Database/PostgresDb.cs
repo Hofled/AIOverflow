@@ -3,8 +3,6 @@ using AIOverflow.Identity;
 using AIOverflow.Models.Posts;
 using AIOverflow.Models.Comments;
 using AIOverflow.Models.Likes;
-using System;
-using AIOverflow.DTOs;
 
 namespace AIOverflow.Database;
 
@@ -13,7 +11,8 @@ public class PostgresDb : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<Comment> Comments { get; set; }
-    public DbSet<Like> Likes { get; set; }
+    public DbSet<PostLike> PostLikes { get; set; }
+    public DbSet<CommentLike> CommentLikes { get; set; }
 
     public PostgresDb(DbContextOptions<PostgresDb> options) : base(options)
     {
@@ -53,28 +52,29 @@ public class PostgresDb : DbContext
             .HasForeignKey(c => c.PostId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Like Configuration
-        modelBuilder.Entity<Like>()
+        // Post Like Configuration
+        modelBuilder.Entity<PostLike>()
             .HasOne(l => l.User)
-            .WithMany(u => u.Likes)
+            .WithMany(u => u.PostLikes)
             .HasForeignKey(l => l.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-        modelBuilder.Entity<Like>()
-            .HasOne(l => l.Comment)
-            .WithMany(c => c.Likes)
-            .HasForeignKey(l => l.CommentId)
-            .OnDelete(DeleteBehavior.Cascade);
-        modelBuilder.Entity<Like>()
+        modelBuilder.Entity<PostLike>()
             .HasOne(l => l.Post)
-            .WithMany(c => c.Likes)
+            .WithMany(p => p.Likes)
             .HasForeignKey(l => l.PostId)
             .OnDelete(DeleteBehavior.Cascade);
-        modelBuilder.Entity<Like>()
-            .HasKey(l => new { l.UserId, l.CommentId })
-            .HasName("Like_CommendKey");
-        modelBuilder.Entity<Like>()
-            .HasKey(l => new { l.UserId, l.PostId })
-            .HasName("Like_PostKey");
+
+        // Comment Like Configuration
+        modelBuilder.Entity<CommentLike>()
+            .HasOne(l => l.User)
+            .WithMany(u => u.CommentLikes)
+            .HasForeignKey(l => l.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<CommentLike>()
+            .HasOne(l => l.Comment)
+            .WithMany(p => p.Likes)
+            .HasForeignKey(l => l.CommentId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     // User CRUD methods
@@ -132,18 +132,19 @@ public class PostgresDb : DbContext
     public async Task<List<Post>> GetAllPostsAsync()
     {
         return await Posts
-        .Include(p => p.Comments)
-        .ThenInclude(c => c.Author)
+        .Include(p => p.Comments).ThenInclude(c => c.Author)
+        .Include(p => p.Comments).ThenInclude(c => c.Likes)
+        .Include(p => p.Likes).ThenInclude(l => l.User)
         .Include(p => p.Author)
         .ToListAsync();
-
     }
 
     public async Task<Post?> GetPostByIdAsync(int id)
     {
         return await Posts
-        .Include(p => p.Comments)
-        .ThenInclude(c => c.Author)
+        .Include(p => p.Comments).ThenInclude(c => c.Author)
+        .Include(p => p.Comments).ThenInclude(c => c.Likes)
+        .Include(p => p.Likes).ThenInclude(l => l.User)
         .Include(p => p.Author)
         .FirstOrDefaultAsync(p => p.Id == id);
     }
@@ -178,8 +179,7 @@ public class PostgresDb : DbContext
     {
         return await Comments
         .Include(c => c.Author)
-        .Include(c => c.Likes)
-        .ThenInclude(l => l.User)
+        .Include(c => c.Likes).ThenInclude(l => l.User)
         .FirstOrDefaultAsync(c => c.Id == id);
     }
 
@@ -188,8 +188,7 @@ public class PostgresDb : DbContext
         return await Comments
         .Where(c => c.PostId == id)
         .Include(c => c.Author)
-        .Include(c => c.Likes)
-        .ThenInclude(l => l.User)
+        .Include(c => c.Likes).ThenInclude(l => l.User)
         .ToListAsync();
     }
 
@@ -211,78 +210,111 @@ public class PostgresDb : DbContext
         return await SaveChangesAsync();
     }
 
-    // Like CRUD methods
-    public async Task<int> AddLikeAsync(Like like)
+    // Post Like CRUD methods
+    public async Task<int> AddPostLikeAsync(PostLike like)
     {
-        await Likes.AddAsync(like);
+        await PostLikes.AddAsync(like);
         return await SaveChangesAsync();
     }
 
-    public async Task DeleteLikeAsync(Like like)
+    public async Task DeletePostLikeAsync(PostLike like)
     {
-        Likes.Remove(like);
+        PostLikes.Remove(like);
         await SaveChangesAsync();
     }
 
-    public async Task UpdateLikeAsync(Like like)
+    public async Task UpdatePostLikeAsync(PostLike like)
     {
-        Likes.Update(like);
+        PostLikes.Update(like);
         await SaveChangesAsync();
     }
 
-    public async Task<int> SetCommentVoteAsync(int commentId, int userId, int score)
+    public async Task<int> SetPostLikeAsync(int postId, int userId, int score)
     {
-        var like = await Likes.SingleOrDefaultAsync(l => l.CommentId == commentId && l.UserId == userId);
+        var like = await PostLikes.SingleOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
         if (like == null)
         {
-            like = new Like
-            {
-                CommentId = commentId,
-                UserId = userId,
-                Score = score,
-                CreatedAt = DateTime.UtcNow
-            };
-            await AddLikeAsync(like);
-            return score;
-        }
-        else
-        {
-            return await handleExistingLikeAsync(like, score);
-        }
-    }
-
-    public async Task<int> SetPostVoteAsync(int postId, int userId, int score)
-    {
-        var like = await Likes.SingleOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
-        if (like == null)
-        {
-            like = new Like
+            like = new PostLike
             {
                 PostId = postId,
                 UserId = userId,
                 Score = score,
                 CreatedAt = DateTime.UtcNow
             };
-            await AddLikeAsync(like);
+            await AddPostLikeAsync(like);
             return score;
         }
         else
         {
-            return await handleExistingLikeAsync(like, score);
+            return await handleExistingPostLikeAsync(like, score);
         }
     }
 
-    private async Task<int> handleExistingLikeAsync(Like like, int score)
+    private async Task<int> handleExistingPostLikeAsync(PostLike like, int score)
     {
         var calculatedScore = like.Score - score;
         if (calculatedScore == 0)
         {
-            await DeleteLikeAsync(like);
+            await DeletePostLikeAsync(like);
             return 0;
         }
 
         like.Score = score;
-        await UpdateLikeAsync(like);
+        await UpdatePostLikeAsync(like);
+        return score;
+    }
+
+    // Comment Like CRUD methods
+    public async Task<int> AddCommentLikeAsync(CommentLike like)
+    {
+        await CommentLikes.AddAsync(like);
+        return await SaveChangesAsync();
+    }
+
+    public async Task DeleteCommentLikeAsync(CommentLike like)
+    {
+        CommentLikes.Remove(like);
+        await SaveChangesAsync();
+    }
+
+    public async Task UpdateCommentLikeAsync(CommentLike like)
+    {
+        CommentLikes.Update(like);
+        await SaveChangesAsync();
+    }
+
+    public async Task<int> SetCommentLikeAsync(int commentId, int userId, int score)
+    {
+        var like = await CommentLikes.SingleOrDefaultAsync(l => l.CommentId == commentId && l.UserId == userId);
+        if (like == null)
+        {
+            like = new CommentLike
+            {
+                CommentId = commentId,
+                UserId = userId,
+                Score = score,
+                CreatedAt = DateTime.UtcNow
+            };
+            await AddCommentLikeAsync(like);
+            return score;
+        }
+        else
+        {
+            return await handleExistingCommentLikeAsync(like, score);
+        }
+    }
+
+    private async Task<int> handleExistingCommentLikeAsync(CommentLike like, int score)
+    {
+        var calculatedScore = like.Score - score;
+        if (calculatedScore == 0)
+        {
+            await DeleteCommentLikeAsync(like);
+            return 0;
+        }
+
+        like.Score = score;
+        await UpdateCommentLikeAsync(like);
         return score;
     }
 }

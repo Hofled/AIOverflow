@@ -78,12 +78,19 @@ namespace AIOverflow.Controllers.Comments
             }
         }
 
-        [HttpPost("{id:int}/setVoteScore")]
-        public async Task<ActionResult<int>> SetCommentVoteScoreAsync(int id, [FromBody] SetVoteDto setVoteUDto)
+        // POST: comments/{id}/setLikeScore
+        [HttpPost("{id:int}/setLikeScore")]
+        public async Task<ActionResult<int>> SetCommentLikeScoreAsync(int id, [FromBody] LikeSetDto likeSetDto)
         {
             try
             {
-                var newScore = await _commentService.SetCommentVoteAsync(id, setVoteUDto);
+                var idClaim = User.Claims.FirstOrDefault(c => c.Type == "ID");
+                if (idClaim == null)
+                {
+                    return Unauthorized();
+                }
+
+                var newScore = await _commentService.SetCommentLikeAsync(id, int.Parse(idClaim.Value), likeSetDto.Score);
                 return Ok(newScore);
             }
             catch (System.Exception)

@@ -1,7 +1,7 @@
 import { LoaderFunction } from "react-router-dom";
 import postsService from "../../services/posts/service";
 import { Status } from "../../services/axios";
-import { APIPostToPost, Post } from "../../services/posts/models";
+import { Post } from "../../services/posts/models";
 
 const postsLoader: LoaderFunction<Post[]> = async () => {
     const postsResponse = await postsService.getPosts();
@@ -9,7 +9,7 @@ const postsLoader: LoaderFunction<Post[]> = async () => {
         throw new Response("posts not found", { status: 404 });
     }
 
-    return postsResponse.result?.map<Post>(p => APIPostToPost(p));
+    return postsResponse.result;
 }
 
 export { postsLoader };

@@ -11,7 +11,7 @@ namespace AIOverflow.Services.Comments
         Task<List<CommentDisplayDto>> GetAllCommentsByPostIdAsync(int postId);
         Task UpdateCommentAsync(int id, CommentUpdateDto commentDto);
         Task DeleteCommentAsync(int id);
-        Task<int> SetCommentVoteAsync(int commentId, SetVoteDto voteUpdateDto);
+        Task<int> SetCommentLikeAsync(int commentId, int userId, int score);
     }
 
     public class CommentsService : ICommentService
@@ -77,9 +77,9 @@ namespace AIOverflow.Services.Comments
             await _db.DeleteCommentAsync(id);
         }
 
-        public async Task<int> SetCommentVoteAsync(int commentId, SetVoteDto setVoteDto)
+        public async Task<int> SetCommentLikeAsync(int commentId, int userId, int score)
         {
-            return await _db.SetCommentVoteAsync(commentId, setVoteDto.UserId, setVoteDto.Score);
+            return await _db.SetCommentLikeAsync(commentId, userId, score);
         }
 
         private CommentDisplayDto _ToCommentDisplayDto(Comment comment)

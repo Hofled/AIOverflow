@@ -8,10 +8,9 @@ namespace AIOverflow.DTOs
         public UserDto User { get; set; }
     }
 
-    public class SetVoteDto
+    public class LikeSetDto
     {
         public int Score { get; set; }
-        public int UserId { get; set; }
     }
 
     public class CommentCreateDto

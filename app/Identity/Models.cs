@@ -13,7 +13,8 @@ public class User
     public HashSet<UserClaim> Claims { get; set; } = new HashSet<UserClaim>();
     public virtual ICollection<Post> Posts { get; set; }
     public virtual ICollection<Comment> Comments { get; set; }
-    public virtual ICollection<Like> Likes { get; set; }
+    public virtual ICollection<PostLike> PostLikes { get; set; }
+    public virtual ICollection<CommentLike> CommentLikes { get; set; }
 
 
     public Claim[] ToClaimsArray()

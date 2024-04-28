@@ -23,6 +23,6 @@ namespace AIOverflow.Models.Comments
         public virtual Post Post { get; set; }
 
         //navigation properties for likes on the comment
-        public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
+        public virtual ICollection<CommentLike> Likes { get; set; } = new List<CommentLike>();
     }
 }
