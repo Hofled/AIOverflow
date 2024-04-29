@@ -123,25 +123,11 @@ class Post extends Component<Props, PostState> {
     };
 
     handleLike = async () => {
-        const { userLiked } = this.state;
-        if (userLiked) return; // Do nothing if already liked
-        await this.submitLike(1);
-        this.setState(prevState => ({
-            likeCount: prevState.likeCount + 1,
-            userLiked: true,
-            userDisliked: false,
-        }));
+        await this.submitLike(this.state.userLiked ? 0 : 1);
     };
 
     handleDislike = async () => {
-        const { userDisliked } = this.state;
-        if (userDisliked) return; // Do nothing if already disliked
-        await this.submitLike(-1);
-        this.setState(prevState => ({
-            dislikeCount: prevState.dislikeCount + 1,
-            userLiked: false,
-            userDisliked: true,
-        }));
+        await this.submitLike(this.state.userDisliked ? 0 : -1);
     };
 
     async submitLike(score: number) {
