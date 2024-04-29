@@ -2,38 +2,60 @@ import { Component, ChangeEvent, FormEvent } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input, Alert, Container, Row } from 'reactstrap';
 import authService from '../../../services/auth/service';
 import { Status } from '../../../services/axios';
+import { RootState } from '../../../state/reducers';
+import { updateUsername } from '../../../state/identity/actions';
+import { connect } from 'react-redux';
 
 // Define the LoginProps interface
 interface LoginProps {
-  isOpen: boolean;
+  username?: string;
+  userId?: number;
+  updateUsername: (newUsername: string) => void;
+
   toggle: () => void;
-  onLogin?: (username: string) => void;
-  onRegister?: (username: string) => void;
+  onLogin?: () => void;
+  onRegister?: () => void;
 }
 
 // Define the LoginState interface
 interface LoginState {
-  username: string;
+  usernameToSubmit: string;
   password: string;
   error?: string;
   loggedIn: boolean;
   successMessage?: string;
 }
 
+const mapStateToProps = (state: RootState) => ({
+  username: state.identity.username,
+  userId: state.identity.id,
+});
+
+const mapDispatchToProps = {
+  updateUsername: updateUsername
+};
+
 // Define the Login component as a class component
 class Login extends Component<LoginProps, LoginState> {
   constructor(props: LoginProps) {
     super(props);
     this.state = {
-      username: '',
+      usernameToSubmit: '',
       password: '',
       loggedIn: false
     };
   }
 
+  componentWillUnmount(): void {
+    this.setState({
+      error: undefined,
+      successMessage: undefined
+    })
+  }
+
   // Function to handle changes in the username input
   handleUsernameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    this.setState({ username: e.target.value });
+    this.setState({ usernameToSubmit: e.target.value });
   };
 
   // Function to handle changes in the password input
@@ -43,12 +65,13 @@ class Login extends Component<LoginProps, LoginState> {
 
   handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    const { username, password } = this.state;
-    const result = await authService.login(username, password);
+    const { usernameToSubmit, password } = this.state;
+    const result = await authService.login(usernameToSubmit, password);
     switch (result.status) {
       case Status.Success:
+        this.props.updateUsername(usernameToSubmit);
         this.setState({ error: undefined, loggedIn: true, successMessage: "Successfully logged in!" });
-        this.props.onLogin && this.props.onLogin(this.state.username);
+        this.props.onLogin && this.props.onLogin();
         break;
       case Status.Fail:
         this.setState({ error: result.result, loggedIn: false });
@@ -60,26 +83,31 @@ class Login extends Component<LoginProps, LoginState> {
   };
 
   handleRegister = async () => {
-    const result = await authService.register(this.state.username, this.state.password);
+    const result = await authService.register(this.state.usernameToSubmit, this.state.password);
     if (result.status !== Status.Success) {
       this.setState({ error: result.result, loggedIn: false });
       return;
     }
-    this.props.onRegister && this.props.onRegister(this.state.username);
+    this.props.updateUsername(this.state.usernameToSubmit);
+    this.props.onRegister && this.props.onRegister();
   };
 
   getFooterContent = (): React.ReactElement => {
-    if (this.state.error) { return <Alert color="danger">{this.state.error}</Alert> }
-    else if (this.state.loggedIn && this.state.successMessage) { return <Alert color="success">{this.state.successMessage}</Alert> }
+    if (this.state.error) {
+      return <Alert color="danger">{this.state.error}</Alert>;
+    }
+    else if (this.state.loggedIn && this.state.successMessage) {
+      return <Alert color="success">{this.state.successMessage}</Alert>;
+    }
     return <></>;
   }
 
   render() {
-    const { isOpen, toggle } = this.props;
-    const { username, password } = this.state;
+    const { toggle } = this.props;
+    const { usernameToSubmit, password } = this.state;
 
     return (
-      <Modal isOpen={isOpen} toggle={toggle}>
+      <Modal isOpen={true} toggle={toggle}>
         <ModalHeader toggle={toggle}>Login</ModalHeader>
         <ModalBody>
           <Form onSubmit={this.handleLogin}>
@@ -90,7 +118,7 @@ class Login extends Component<LoginProps, LoginState> {
                 name="username"
                 id="username"
                 placeholder="Username"
-                value={username}
+                value={usernameToSubmit}
                 onChange={this.handleUsernameChange}
               />
             </FormGroup>
@@ -123,4 +151,4 @@ class Login extends Component<LoginProps, LoginState> {
   }
 }
 
-export default Login;
+export default connect(mapStateToProps, mapDispatchToProps)(Login);
