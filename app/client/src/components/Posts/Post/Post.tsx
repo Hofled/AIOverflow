@@ -186,16 +186,20 @@ class Post extends Component<Props, PostState> {
         return (
             <div className="my-4 mx-4">
                 <Card className="my-4 mx-4">
-                    <div className="like-dislike-indicators">
-                        <div className={`like-indicator ${userLiked ? 'active' : ''}`} onClick={this.handleLike}>
-                            <FaThumbsUp />
-                            <span>{likeCount}</span>
-                        </div>
-                        <div className={`dislike-indicator ${userDisliked ? 'active' : ''}`} onClick={this.handleDislike}>
-                            <FaThumbsDown />
-                            <span>{dislikeCount}</span>
-                        </div>
-                    </div>
+                    <Row className="post-header">
+                        <Col xs="auto" className="d-flex align-items-center">
+                            <div className={`like-indicator ${userLiked ? 'active' : ''}`} onClick={this.handleLike}>
+                                <FaThumbsUp />
+                                <span>{likeCount}</span>
+                            </div>
+                        </Col>
+                        <Col>
+                            <div className={`like-indicator ${userDisliked ? 'active' : ''}`} onClick={this.handleDislike}>
+                                <FaThumbsDown />
+                                <span>{dislikeCount}</span>
+                            </div>
+                        </Col>
+                    </Row>
                     <CardBody>
                         {isEditing ? (
                             <Form>
