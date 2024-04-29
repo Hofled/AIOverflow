@@ -180,7 +180,7 @@ class Post extends Component<Props, PostState> {
 
     render() {
         let data = this.props.loaderData;
-        const { id, author } = data;
+        const { id, author, createdAt, editedAt } = data;
         const { newComment, isEditing, title, content, likeCount, dislikeCount, userLiked, userDisliked } = this.state;
 
         return (
@@ -219,7 +219,7 @@ class Post extends Component<Props, PostState> {
                                 <CardTitle tag="h5">{title}</CardTitle>
                                 <CardText>{content}</CardText>
                                 <div>
-                                    <small>Posted by {author.name}</small>
+                                    <small>Posted by {author.name} on {createdAt.toLocaleString()} | {editedAt ? `Last edited on ${editedAt.toLocaleString()}` : ''}</small>
                                 </div>
                                 <Button color="primary" onClick={this.handleEdit}>Edit</Button>
                             </>
