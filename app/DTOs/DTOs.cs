@@ -52,7 +52,7 @@ namespace AIOverflow.DTOs
         public string Title { get; set; }
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime EditedAt { get; set; }
+        public DateTime? EditedAt { get; set; }
         public UserDto Author { get; set; }
         public List<CommentDisplayDto> Comments { get; set; } = new List<CommentDisplayDto>();
         public List<LikeDisplayDto> Likes { get; set; } = new List<LikeDisplayDto>();
