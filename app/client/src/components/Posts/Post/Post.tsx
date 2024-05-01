@@ -7,6 +7,8 @@ import postsService, { PostUpdater } from '../../../services/posts/service';
 import PostComment from './Comment/Comment';
 import { FaThumbsDown, FaThumbsUp } from 'react-icons/fa';
 import "./Post.css";
+import { RootState } from '../../../state/reducers';
+import { connect } from 'react-redux';
 
 interface PostState {
     isEditing: boolean;
@@ -23,7 +25,11 @@ interface PostState {
     userDisliked: boolean;
 }
 
-type Props = LoaderDataProp<PostProps> & PostUpdater;
+const mapStateToProps = (state: RootState) => ({
+    userId: state.identity.id,
+});
+
+type Props = LoaderDataProp<PostProps> & PostUpdater & { userId: number };
 
 class Post extends Component<Props, PostState> {
     constructor(props: Props) {
@@ -49,8 +55,8 @@ class Post extends Component<Props, PostState> {
         const { title, content, comments, likes } = data;
         const likeCount = likes.filter(like => like.score === 1).length;
         const dislikeCount = likes.filter(like => like.score === -1).length;
-        const userLiked = likes.some(like => like.score === 1);
-        const userDisliked = likes.some(like => like.score === -1);
+        const userLiked = likes.findIndex(like => like.score === 1 && like.user.id === this.props.userId) !== -1;
+        const userDisliked = likes.findIndex(like => like.score === -1 && like.user.id === this.props.userId) !== -1;
         comments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
         this.setState({
             title: title,
@@ -252,4 +258,4 @@ class Post extends Component<Props, PostState> {
     }
 }
 
-export default withLoaderData<PostProps>(Post);
+export default connect(mapStateToProps)(withLoaderData<PostProps>(Post));

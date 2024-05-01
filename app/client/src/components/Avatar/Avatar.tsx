@@ -5,7 +5,6 @@ import './Avatar.css';
 import { Link } from 'react-router-dom';
 import { RootState } from '../../state/reducers';
 import { connect } from 'react-redux';
-import { updateUsername } from '../../state/identity/actions';
 
 interface AvatarState {
     dropdownOpened: boolean
@@ -13,17 +12,12 @@ interface AvatarState {
 
 interface AvatarProps {
     username?: string;
-    updateName: (newName: string) => void;
     size: 'sm' | 'md' | 'lg'; // Optional size prop for small, medium, or large avatars
 }
 
 const mapStateToProps = (state: RootState) => ({
     username: state.identity.username,
 });
-
-const mapDispatchToProps = {
-    updateName: updateUsername
-};
 
 class Avatar extends Component<AvatarProps, AvatarState> {
     constructor(props: AvatarProps) {
@@ -46,7 +40,6 @@ class Avatar extends Component<AvatarProps, AvatarState> {
 
     handleLogout = () => {
         authService.logout();
-        this.props.updateName('');
     }
 
     toggleDropdown = () => {
@@ -76,4 +69,4 @@ class Avatar extends Component<AvatarProps, AvatarState> {
     }
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Avatar);
+export default connect(mapStateToProps)(Avatar);

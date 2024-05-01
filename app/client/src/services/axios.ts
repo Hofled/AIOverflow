@@ -32,6 +32,7 @@ function createAxiosRequestConfig(url: string, method: Method, body?: any, confi
 export interface OperationStatus<T> {
     status: Status
     result?: T
+    error?: any
 }
 
 export enum Status {

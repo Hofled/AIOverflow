@@ -2,16 +2,9 @@ import { Component, ChangeEvent, FormEvent } from 'react';
 import { Button, Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input, Alert, Container, Row } from 'reactstrap';
 import authService from '../../../services/auth/service';
 import { Status } from '../../../services/axios';
-import { RootState } from '../../../state/reducers';
-import { updateUsername } from '../../../state/identity/actions';
-import { connect } from 'react-redux';
 
 // Define the LoginProps interface
 interface LoginProps {
-  username?: string;
-  userId?: number;
-  updateUsername: (newUsername: string) => void;
-
   toggle: () => void;
   onLogin?: () => void;
   onRegister?: () => void;
@@ -25,15 +18,6 @@ interface LoginState {
   loggedIn: boolean;
   successMessage?: string;
 }
-
-const mapStateToProps = (state: RootState) => ({
-  username: state.identity.username,
-  userId: state.identity.id,
-});
-
-const mapDispatchToProps = {
-  updateUsername: updateUsername
-};
 
 // Define the Login component as a class component
 class Login extends Component<LoginProps, LoginState> {
@@ -69,12 +53,11 @@ class Login extends Component<LoginProps, LoginState> {
     const result = await authService.login(usernameToSubmit, password);
     switch (result.status) {
       case Status.Success:
-        this.props.updateUsername(usernameToSubmit);
         this.setState({ error: undefined, loggedIn: true, successMessage: "Successfully logged in!" });
         this.props.onLogin && this.props.onLogin();
         break;
       case Status.Fail:
-        this.setState({ error: result.result, loggedIn: false });
+        this.setState({ error: result.error, loggedIn: false });
         break;
       default:
         this.setState({ error: "Unrecognized authentication result", loggedIn: false });
@@ -85,10 +68,9 @@ class Login extends Component<LoginProps, LoginState> {
   handleRegister = async () => {
     const result = await authService.register(this.state.usernameToSubmit, this.state.password);
     if (result.status !== Status.Success) {
-      this.setState({ error: result.result, loggedIn: false });
+      this.setState({ error: result.error, loggedIn: false });
       return;
     }
-    this.props.updateUsername(this.state.usernameToSubmit);
     this.props.onRegister && this.props.onRegister();
   };
 
@@ -151,4 +133,4 @@ class Login extends Component<LoginProps, LoginState> {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Login);
+export default Login;

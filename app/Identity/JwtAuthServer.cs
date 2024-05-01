@@ -29,7 +29,7 @@ namespace JwtAuthenticationServer
             {
                 var user = await _userService.RegisterAsync(request.Username, request.Password);
                 var token = GenerateUserToken(user, _secretKey);
-                return new TokenResponse { Token = token };
+                return new TokenResponse { Token = token, UserID = user.Id, UserName = user.Name };
             }
             catch (UserConflictException e)
             {
@@ -45,7 +45,7 @@ namespace JwtAuthenticationServer
             {
                 var user = await _userService.LoginAsync(request.Username, request.Password);
                 var token = GenerateUserToken(user, _secretKey);
-                return new TokenResponse { Token = token };
+                return new TokenResponse { Token = token, UserID = user.Id, UserName = user.Name };
 
             }
             catch (UnauthorizedException e)
@@ -111,5 +111,7 @@ namespace JwtAuthenticationServer
     public class TokenResponse
     {
         public string Token { get; set; }
+        public int UserID { get; set; }
+        public string UserName { get; set; }
     }
 }

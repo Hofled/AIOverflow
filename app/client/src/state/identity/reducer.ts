@@ -6,9 +6,19 @@ export interface IdentityState {
 }
 
 const initialState: IdentityState = {
-  username: undefined,
-  id: undefined,
+  username: loadUserName(),
+  id: loadUserId(),
 };
+
+function loadUserName(): string | undefined {
+  const userName = localStorage.getItem("userName");
+  return userName ? userName : undefined;
+}
+
+function loadUserId(): number | undefined {
+  const userId = localStorage.getItem("userId");
+  return userId ? parseInt(userId, 10) : undefined;
+}
 
 const identityReducer = (state: IdentityState = initialState, action: IdentityActionTypes): IdentityState => {
   switch (action.type) {

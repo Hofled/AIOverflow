@@ -2,8 +2,18 @@ import axios, { AxiosError, AxiosHeaders, AxiosResponse } from "axios";
 import { UserPaths } from "./consts";
 import { UserInfo } from "../../models/user-info";
 import { OperationStatus, onAxiosSuccess, onAxiosError, axiosRequest, wrapSuccess, wrapFail } from "../axios";
+import { TokenResponse } from "./models";
+import { Store } from "redux";
+import { RootState } from "../../state/reducers";
+import { IdentityActionTypes, updateId, updateUsername } from "../../state/identity/actions";
+import store from "../../state/store";
 
 export class AuthorizeService {
+  constructor(store: Store<RootState, IdentityActionTypes>) {
+    this.store = store;
+  }
+
+  private store: Store<RootState, IdentityActionTypes>;
   private _callbacks: Map<number, (authenticated: boolean) => void> = new Map();
   private _nextSubscriptionId: number = 0;
 
@@ -20,17 +30,21 @@ export class AuthorizeService {
     return axiosRequest(UserPaths.Info, "GET", (r: AxiosResponse<UserInfo>) => wrapSuccess(r.data), (r) => wrapFail(r.data), null, new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}` }));
   }
 
-  async login(username: string, password: string): Promise<OperationStatus<string>> {
+  async login(username: string, password: string): Promise<OperationStatus<number>> {
     return axiosRequest(UserPaths.Login, "POST", this.loginSuccessCallback, this.loginErrorCallback, { username, password }, new AxiosHeaders({ "Content-Type": "application/json" }));
   }
 
   logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userName");
+    this.store.dispatch(updateUsername(undefined));
+    this.store.dispatch(updateId(undefined));
     this.notifySubscribers(false);
   }
 
   // registers a new user using the provided username and password and signs in
-  async register(username: string, password: string, state?: any): Promise<OperationStatus<string>> {
+  async register(username: string, password: string, state?: any): Promise<OperationStatus<number>> {
     return axiosRequest(UserPaths.Register, "POST", this.loginSuccessCallback, this.loginErrorCallback, { username, password }, new AxiosHeaders({ "Content-Type": "application/json" }));
   }
 
@@ -45,10 +59,14 @@ export class AuthorizeService {
     );
   }
 
-  private loginSuccessCallback: onAxiosSuccess<{ token: string }, string> = response => {
+  private loginSuccessCallback: onAxiosSuccess<TokenResponse, number> = response => {
     localStorage.setItem('token', response.data.token);
+    localStorage.setItem('userId', response.data.userID.toString());
+    localStorage.setItem('userName', response.data.userName);
+    this.store.dispatch(updateUsername(response.data.userName));
+    this.store.dispatch(updateId(response.data.userID));
     this.notifySubscribers(true);
-    return wrapSuccess();
+    return wrapSuccess(response.data.userID);
   }
 
   private loginErrorCallback: onAxiosError = (error, response) => {
@@ -84,6 +102,6 @@ export class AuthorizeService {
   static get instance() { return authService }
 }
 
-const authService = new AuthorizeService();
+const authService = new AuthorizeService(store);
 
 export default authService;
