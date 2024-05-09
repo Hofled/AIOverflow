@@ -26,13 +26,27 @@ export let APILikeToLike = (like: APILike): Like => {
     };
 };
 
+let APILikeMapToLikeMap = (likes: Map<number, APILike>): Map<number, Like> => {
+    let newLikes = new Map<number, Like>();
+
+    if (Object.keys(likes).length == 0) {
+        return newLikes;
+    }
+
+    for (let [id, like] of likes) {
+        newLikes.set(id, APILikeToLike(like));
+    }
+
+    return newLikes;
+};
+
 export interface APIComment {
     id: number;
     content: string;
     createdAt: string;
     editedAt?: string | null;
     author: Author;
-    likes: APILike[];
+    likes: Map<number, APILike>;
 }
 
 export interface Comment {
@@ -41,7 +55,7 @@ export interface Comment {
     createdAt: Date;
     editedAt?: Date | null;
     author: Author;
-    likes: Like[];
+    likes: Map<number, Like>;
 }
 
 export let APICommentToComment = (comment: APIComment): Comment => {
@@ -51,7 +65,7 @@ export let APICommentToComment = (comment: APIComment): Comment => {
         createdAt: new Date(comment.createdAt),
         editedAt: comment.editedAt ? new Date(comment.editedAt) : null,
         author: comment.author,
-        likes: comment.likes.map(l => APILikeToLike(l)),
+        likes: APILikeMapToLikeMap(comment.likes),
     };
 };
 
@@ -70,7 +84,7 @@ export interface APIPost {
     editedAt?: string | null;
     author: Author;
     comments: APIComment[];
-    likes: APILike[];
+    likes: Map<number, APILike>;
 }
 
 export interface Post {
@@ -82,7 +96,7 @@ export interface Post {
     editedAt?: Date | null;
     author: Author;
     comments: Comment[];
-    likes: Like[];
+    likes: Map<number, Like>;
 }
 
 export let APIPostToPost = (post: APIPost): Post => {
@@ -95,7 +109,7 @@ export let APIPostToPost = (post: APIPost): Post => {
         editedAt: post.editedAt ? new Date(post.editedAt) : null,
         author: post.author,
         comments: post.comments.map(c => APICommentToComment(c)),
-        likes: post.likes.map(l => APILikeToLike(l)),
+        likes: APILikeMapToLikeMap(post.likes),
     };
 };
 

@@ -84,13 +84,13 @@ namespace AIOverflow.Services.Comments
 
         private CommentDisplayDto _ToCommentDisplayDto(Comment comment)
         {
-            var likesDtos = comment.Likes.Select(l => new LikeDisplayDto
+            var likesDict = comment.Likes.ToDictionary(l => l.UserId, l => new LikeDisplayDto
             {
                 Id = l.Id,
                 CreatedAt = l.CreatedAt,
                 Score = l.Score,
                 User = new UserDto { Id = l.User.Id, Name = l.User.Name }
-            }).ToList();
+            });
 
             return new CommentDisplayDto
             {
@@ -98,7 +98,7 @@ namespace AIOverflow.Services.Comments
                 Content = comment.Content,
                 CreatedAt = comment.CreatedAt,
                 Author = new UserDto { Id = comment.Author.Id, Name = comment.Author.Name },
-                Likes = likesDtos
+                Likes = likesDict
             };
         }
     }

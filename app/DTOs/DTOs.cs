@@ -25,8 +25,7 @@ namespace AIOverflow.DTOs
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserDto Author { get; set; }
-        // Remove PostDto or any reference that might lead back to PostDto
-        public List<LikeDisplayDto> Likes { get; set; } = new List<LikeDisplayDto>();
+        public Dictionary<int, LikeDisplayDto> Likes { get; set; } = new Dictionary<int, LikeDisplayDto>();
     }
 
     public class CommentUpdateDto
@@ -55,7 +54,7 @@ namespace AIOverflow.DTOs
         public DateTime? EditedAt { get; set; }
         public UserDto Author { get; set; }
         public List<CommentDisplayDto> Comments { get; set; } = new List<CommentDisplayDto>();
-        public List<LikeDisplayDto> Likes { get; set; } = new List<LikeDisplayDto>();
+        public Dictionary<int, LikeDisplayDto> Likes { get; set; } = new Dictionary<int, LikeDisplayDto>();
     }
 
     public class PostUpdateDto

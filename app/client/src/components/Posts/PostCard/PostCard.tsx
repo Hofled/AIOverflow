@@ -9,8 +9,8 @@ import "./PostCard.css";
 class PostCard extends Component<PostProps, {}> {
   render() {
     const { id, title, content, author, createdAt, editedAt, comments, likes } = this.props;
-    const likesCount = likes.filter(like => like.score === 1).length;
-    const dislikesCount = likes.filter(like => like.score === -1).length;
+    const likesCount = Array.from(likes.values()).reduce((acc, like) => like.score === 1 ? acc + 1 : acc, 0);
+    const dislikesCount = Array.from(likes.values()).reduce((acc, like) => like.score === -1 ? acc + 1 : acc, 0);
 
     return (
       <Card className="mb-4">

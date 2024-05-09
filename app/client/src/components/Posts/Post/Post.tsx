@@ -18,7 +18,7 @@ interface PostState {
     lastSetContent: string;
     newComment: string;
     comments: Comment[];
-    likes: Like[];
+    likes: Map<number, Like>;
     likeCount: number;
     dislikeCount: number;
     userLiked: boolean;
@@ -42,7 +42,7 @@ class Post extends Component<Props, PostState> {
             newComment: '',
             isEditing: false,
             comments: [],
-            likes: [],
+            likes: new Map<number, Like>(),
             likeCount: 0,
             dislikeCount: 0,
             userLiked: false,
@@ -53,10 +53,10 @@ class Post extends Component<Props, PostState> {
     componentDidMount(): void {
         let data = this.props.loaderData;
         const { title, content, comments, likes } = data;
-        const likeCount = likes.filter(like => like.score === 1).length;
-        const dislikeCount = likes.filter(like => like.score === -1).length;
-        const userLiked = likes.findIndex(like => like.score === 1 && like.user.id === this.props.userId) !== -1;
-        const userDisliked = likes.findIndex(like => like.score === -1 && like.user.id === this.props.userId) !== -1;
+        const likeCount = Array.from(likes.values()).reduce((acc, cur) => cur.score == 1 ? acc + 1 : acc, 0);
+        const dislikeCount = Array.from(likes.values()).reduce((acc, cur) => cur.score == -1 ? acc + 1 : acc, 0);
+        const userLiked = likes.get(this.props.userId)?.score === 1;
+        const userDisliked = likes.get(this.props.userId)?.score === -1;
         comments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
         this.setState({
             title: title,

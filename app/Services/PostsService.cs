@@ -85,6 +85,14 @@ namespace AIOverflow.Services.Posts
 
         private PostDisplayDto _ToPostDisplayDto(Post post)
         {
+            var likesDict = post.Likes.ToDictionary(l => l.UserId, l => new LikeDisplayDto
+            {
+                Id = l.Id,
+                CreatedAt = l.CreatedAt,
+                User = new UserDto { Id = l.UserId, Name = l.User.Name },
+                Score = l.Score
+            });
+
             return new PostDisplayDto
             {
                 Id = post.Id,
@@ -100,13 +108,7 @@ namespace AIOverflow.Services.Posts
                     CreatedAt = c.CreatedAt,
                     Author = new UserDto { Id = c.Author.Id, Name = c.Author.Name }
                 }).ToList(),
-                Likes = post.Likes.Select(l => new LikeDisplayDto
-                {
-                    Id = l.Id,
-                    CreatedAt = l.CreatedAt,
-                    User = new UserDto { Id = l.User.Id, Name = l.User.Name },
-                    Score = l.Score
-                }).ToList()
+                Likes = likesDict,
             };
         }
     }
