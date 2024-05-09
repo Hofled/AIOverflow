@@ -9,7 +9,6 @@ namespace AIOverflow.Models.Likes
         // Foreign key
         public int PostId { get; set; }
 
-        // Navigation properties
         [ForeignKey("PostId")]
         public virtual Post Post { get; set; }
     }
