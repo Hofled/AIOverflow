@@ -29,7 +29,7 @@ export let APILikeToLike = (like: APILike): Like => {
 let APILikeMapToLikeMap = (likes: Map<number, APILike>): Map<number, Like> => {
     let newLikes = new Map<number, Like>();
 
-    if (Object.keys(likes).length == 0) {
+    if (likes.size === 0) {
         return newLikes;
     }
 
@@ -59,13 +59,17 @@ export interface Comment {
 }
 
 export let APICommentToComment = (comment: APIComment): Comment => {
+    const likesMap = new Map<number, APILike>();
+    for (let [k, v] of Object.entries(comment.likes)) {
+        likesMap.set(parseInt(k), v as APILike);
+    }
     return {
         id: comment.id,
         content: comment.content,
         createdAt: new Date(comment.createdAt),
         editedAt: comment.editedAt ? new Date(comment.editedAt) : null,
         author: comment.author,
-        likes: APILikeMapToLikeMap(comment.likes),
+        likes: APILikeMapToLikeMap(likesMap),
     };
 };
 
@@ -100,6 +104,10 @@ export interface Post {
 }
 
 export let APIPostToPost = (post: APIPost): Post => {
+    const likesMap = new Map<number, APILike>();
+    for (let [k, v] of Object.entries(post.likes)) {
+        likesMap.set(parseInt(k), v as APILike);
+    }
     return {
         id: post.id,
         userId: post.userId,
@@ -109,7 +117,7 @@ export let APIPostToPost = (post: APIPost): Post => {
         editedAt: post.editedAt ? new Date(post.editedAt) : null,
         author: post.author,
         comments: post.comments.map(c => APICommentToComment(c)),
-        likes: APILikeMapToLikeMap(post.likes),
+        likes: APILikeMapToLikeMap(likesMap),
     };
 };
 

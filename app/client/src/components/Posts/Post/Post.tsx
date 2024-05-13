@@ -53,8 +53,8 @@ class Post extends Component<Props, PostState> {
     componentDidMount(): void {
         let data = this.props.loaderData;
         const { title, content, comments, likes } = data;
-        const likeCount = Array.from(likes.values()).reduce((acc, cur) => cur.score == 1 ? acc + 1 : acc, 0);
-        const dislikeCount = Array.from(likes.values()).reduce((acc, cur) => cur.score == -1 ? acc + 1 : acc, 0);
+        const likeCount = Array.from(likes.values()).reduce((acc, cur) => cur.score === 1 ? acc + 1 : acc, 0);
+        const dislikeCount = Array.from(likes.values()).reduce((acc, cur) => cur.score === -1 ? acc + 1 : acc, 0);
         const userLiked = likes.get(this.props.userId)?.score === 1;
         const userDisliked = likes.get(this.props.userId)?.score === -1;
         comments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -143,22 +143,41 @@ class Post extends Component<Props, PostState> {
             return;
         }
 
+
+        let likeCounts = { likeCount: this.state.likeCount, dislikeCount: this.state.dislikeCount };
         let likeState: { userLiked: boolean, userDisliked: boolean };
 
         const newScore = response.result;
         switch (newScore) {
             case 1:
                 {
+                    likeCounts.likeCount += 1;
+                    if (this.state.userDisliked) {
+                        likeCounts.dislikeCount -= 1;
+                    }
+
                     likeState = { userLiked: true, userDisliked: false };
                     break;
                 }
             case -1:
                 {
+                    likeCounts.dislikeCount += 1;
+                    if (this.state.userLiked) {
+                        likeCounts.likeCount -= 1;
+                    }
+
                     likeState = { userLiked: false, userDisliked: true };
                     break;
                 }
             case 0:
                 {
+                    if (this.state.userLiked) {
+                        likeCounts.likeCount -= 1;
+                    }
+                    else if (this.state.userDisliked) {
+                        likeCounts.dislikeCount -= 1;
+                    }
+
                     likeState = { userLiked: false, userDisliked: false };
                     break;
                 }
@@ -167,7 +186,7 @@ class Post extends Component<Props, PostState> {
                 return;
         }
 
-        this.setState(likeState);
+        this.setState({ ...likeState, ...likeCounts });
     }
 
     render() {
