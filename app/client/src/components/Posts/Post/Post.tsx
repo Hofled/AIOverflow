@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, Input, Button, Badge } from 'reactstrap';
-import { Post as PostProps, UpdatePost, Comment, Like } from "../../../services/posts/models";
+import { Post as PostProps, UpdatePost, Like } from "../../../services/posts/models";
+import { Comment } from "../../../services/comments/models";
 import { LoaderDataProp, withLoaderData } from '../../../routing/wrappers';
 import { Status } from '../../../services/axios';
 import postsService, { PostUpdater } from '../../../services/posts/service';
@@ -9,6 +10,7 @@ import { FaThumbsDown, FaThumbsUp } from 'react-icons/fa';
 import "./Post.css";
 import { RootState } from '../../../state/reducers';
 import { connect } from 'react-redux';
+import commentsService from '../../../services/comments/service';
 
 interface PostState {
     isEditing: boolean;
@@ -103,7 +105,7 @@ class Post extends Component<Props, PostState> {
 
     handleSubmitComment = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const response = await postsService.addPostComment({ postId: this.props.loaderData.id, content: this.state.newComment });
+        const response = await commentsService.addPostComment({ postId: this.props.loaderData.id, content: this.state.newComment });
         if (response.status !== Status.Success) {
             console.error("failed adding comment");
             return;
