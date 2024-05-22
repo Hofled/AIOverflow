@@ -5,7 +5,6 @@ using AIOverflow.Services.Users;
 using AIOverflow.Services.Comments;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Builder;
 
 
 string? secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");

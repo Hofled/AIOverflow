@@ -10,7 +10,7 @@ services:
     depends_on:
       - db
     environment:
-      - ConnectionString=Host=db;Database=forumdb;Username=forumadmin;Password=securepassword
+      - CONNECTION_STRING=Host=db;Database=forumdb;Username=forumadmin;Password=securepassword
       - SECRET_KEY=MY_REALLY_LONG_SECRET_KEY
     networks:
       - forum-network

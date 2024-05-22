@@ -5,20 +5,21 @@ import './NavMenu.css';
 import LoginModal from './Authorization/Login/LoginModal';
 import Avatar from './Avatar/Avatar';
 import authService from '../services/auth/service';
-import { Status } from '../services/axios';
 import { postRoutes } from '../routing/consts';
 
 interface State {
-  collapsed: boolean
-  isLoginModalOpen: boolean
-  loggedIn: boolean // TODO move to store
-  username?: string // TODO move to store
+  collapsed: boolean;
+  isLoginModalOpen: boolean;
+  loggedIn: boolean;
 }
 
-export default class NavMenu extends Component<{}, State> {
+interface Props {
+}
+
+class NavMenu extends Component<Props, State> {
   private authServiceSubID?: number = undefined;
 
-  constructor(props: {}) {
+  constructor(props: Props) {
     super(props);
 
     this.state = {
@@ -33,17 +34,8 @@ export default class NavMenu extends Component<{}, State> {
       this.setState({ loggedIn: authenticated });
     });
 
-    let username: string | undefined;
     const loggedIn = authService.isAuthenticated();
-    if (loggedIn) {
-      const result = await authService.getUserInfo();
-      switch (result.status) {
-        case Status.Success:
-          username = result?.result?.name;
-          break;
-      }
-    }
-    this.setState({ loggedIn: loggedIn, username: username });
+    this.setState({ loggedIn: loggedIn });
   }
 
   componentWillUnmount(): void {
@@ -74,7 +66,7 @@ export default class NavMenu extends Component<{}, State> {
                   {
                     !this.state.loggedIn ?
                       <Button color="primary" className="text-dark" onClick={this.toggleLoginModal}>Login</Button>
-                      : <Avatar username={this.state.username || ""} size='md' />
+                      : <Avatar size='md' />
                   }
                 </NavItem>
               }
@@ -82,12 +74,14 @@ export default class NavMenu extends Component<{}, State> {
           </Collapse>
         </Navbar>
 
-        <LoginModal
-          isOpen={this.state.isLoginModalOpen}
-          toggle={this.toggleLoginModal}
-          onLogin={username => this.setState({ loggedIn: true, username })}
-          onRegister={username => this.setState({ loggedIn: true, username })} />
+        {this.state.isLoginModalOpen ?
+          <LoginModal
+            toggle={this.toggleLoginModal}
+            onLogin={() => this.setState({ loggedIn: true })}
+            onRegister={() => this.setState({ loggedIn: true })} /> : null}
       </header>
     )
   }
 }
+
+export default NavMenu;

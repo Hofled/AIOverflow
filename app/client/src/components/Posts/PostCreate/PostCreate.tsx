@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { Form, FormGroup, Label, Input, Button } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Button, Alert } from 'reactstrap';
 import postsService from "../../../services/posts/service";
 import { withNavigation } from '../../../routing/wrappers';
 import { NavigateFunction } from 'react-router-dom';
+import { Status } from '../../../services/axios';
 
 interface NavigateProps {
   navigate: NavigateFunction;
@@ -11,6 +12,7 @@ interface NavigateProps {
 interface PostCreationPageState {
   title: string;
   content: string;
+  errorMessage: string | null;
 }
 
 class PostCreationPage extends Component<NavigateProps, PostCreationPageState> {
@@ -19,6 +21,7 @@ class PostCreationPage extends Component<NavigateProps, PostCreationPageState> {
     this.state = {
       title: '',
       content: '',
+      errorMessage: null, // Initialize error message as null
     };
   }
 
@@ -38,17 +41,26 @@ class PostCreationPage extends Component<NavigateProps, PostCreationPageState> {
       title: title,
     });
 
+    if (response.status !== Status.Success) {
+      this.setState({ errorMessage: 'Failed to create post' }); // Update error message state
+      return;
+    }
+
     this.props.navigate(`/post/${response.result?.id}`);
-    // Optionally, clear the form after submission
-    this.setState({ title: '', content: '' });
+    this.setState({ title: '', content: '', errorMessage: null }); // Clear error message after successful submission
   };
 
   render() {
-    const { title, content } = this.state;
+    const { title, content, errorMessage } = this.state;
 
     return (
       <div className="container mt-4">
         <h2>Create a New Post</h2>
+        {errorMessage && (
+          <Alert color="danger">
+            {errorMessage}
+          </Alert>
+        )}
         <Form onSubmit={this.handleSubmit}>
           <FormGroup>
             <Label for="title">Title</Label>

@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
 import { Card, CardBody, CardTitle, CardText, Row, Col, Form, FormGroup, Label, Input, Button, Badge } from 'reactstrap';
-import { Post as PostProps, UpdatePost, Comment } from "../../../services/posts/models";
+import { Post as PostProps, UpdatePost, Comment, Like } from "../../../services/posts/models";
 import { LoaderDataProp, withLoaderData } from '../../../routing/wrappers';
 import { Status } from '../../../services/axios';
 import postsService, { PostUpdater } from '../../../services/posts/service';
 import PostComment from './Comment/Comment';
+import { FaThumbsDown, FaThumbsUp } from 'react-icons/fa';
 import "./Post.css";
+import { RootState } from '../../../state/reducers';
+import { connect } from 'react-redux';
 
 interface PostState {
     isEditing: boolean;
@@ -15,9 +18,18 @@ interface PostState {
     lastSetContent: string;
     newComment: string;
     comments: Comment[];
+    likes: Map<number, Like>;
+    likeCount: number;
+    dislikeCount: number;
+    userLiked: boolean;
+    userDisliked: boolean;
 }
 
-type Props = LoaderDataProp<PostProps> & PostUpdater;
+const mapStateToProps = (state: RootState) => ({
+    userId: state.identity.id,
+});
+
+type Props = LoaderDataProp<PostProps> & PostUpdater & { userId: number };
 
 class Post extends Component<Props, PostState> {
     constructor(props: Props) {
@@ -30,14 +42,34 @@ class Post extends Component<Props, PostState> {
             newComment: '',
             isEditing: false,
             comments: [],
+            likes: new Map<number, Like>(),
+            likeCount: 0,
+            dislikeCount: 0,
+            userLiked: false,
+            userDisliked: false,
         };
     }
 
     componentDidMount(): void {
         let data = this.props.loaderData;
-        const { title, content, comments } = data;
+        const { title, content, comments, likes } = data;
+        const likeCount = Array.from(likes.values()).reduce((acc, cur) => cur.score === 1 ? acc + 1 : acc, 0);
+        const dislikeCount = Array.from(likes.values()).reduce((acc, cur) => cur.score === -1 ? acc + 1 : acc, 0);
+        const userLiked = likes.get(this.props.userId)?.score === 1;
+        const userDisliked = likes.get(this.props.userId)?.score === -1;
         comments.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-        this.setState({ title: title, content: content, comments: comments, lastSetTitle: title, lastSetContent: content });
+        this.setState({
+            title: title,
+            content: content,
+            comments: comments,
+            likes: likes,
+            likeCount: likeCount,
+            dislikeCount: dislikeCount,
+            userLiked: userLiked,
+            userDisliked: userDisliked,
+            lastSetTitle: title,
+            lastSetContent: content
+        });
     }
 
     handleEdit = () => {
@@ -84,8 +116,7 @@ class Post extends Component<Props, PostState> {
             newCommentState = { comments: [...this.state.comments, response.result] };
         }
 
-        // After submitting the comment, you might want to clear the comment input
-        this.setState({ ...this.state, ...newCommentState, newComment: '' });
+        this.setState({ ...newCommentState, newComment: '' });
     };
 
 
@@ -97,14 +128,89 @@ class Post extends Component<Props, PostState> {
         this.setState({ content: e.target.value });
     };
 
+    handleLike = async () => {
+        await this.submitLike(this.state.userLiked ? 0 : 1);
+    };
+
+    handleDislike = async () => {
+        await this.submitLike(this.state.userDisliked ? 0 : -1);
+    };
+
+    async submitLike(score: number) {
+        const response = await postsService.setPostVoteScore(this.props.loaderData.id, score);
+        if (response.status !== Status.Success) {
+            console.error("failed adding like");
+            return;
+        }
+
+
+        let likeCounts = { likeCount: this.state.likeCount, dislikeCount: this.state.dislikeCount };
+        let likeState: { userLiked: boolean, userDisliked: boolean };
+
+        const newScore = response.result;
+        switch (newScore) {
+            case 1:
+                {
+                    likeCounts.likeCount += 1;
+                    if (this.state.userDisliked) {
+                        likeCounts.dislikeCount -= 1;
+                    }
+
+                    likeState = { userLiked: true, userDisliked: false };
+                    break;
+                }
+            case -1:
+                {
+                    likeCounts.dislikeCount += 1;
+                    if (this.state.userLiked) {
+                        likeCounts.likeCount -= 1;
+                    }
+
+                    likeState = { userLiked: false, userDisliked: true };
+                    break;
+                }
+            case 0:
+                {
+                    if (this.state.userLiked) {
+                        likeCounts.likeCount -= 1;
+                    }
+                    else if (this.state.userDisliked) {
+                        likeCounts.dislikeCount -= 1;
+                    }
+
+                    likeState = { userLiked: false, userDisliked: false };
+                    break;
+                }
+            default:
+                console.error("invalid score");
+                return;
+        }
+
+        this.setState({ ...likeState, ...likeCounts });
+    }
+
     render() {
         let data = this.props.loaderData;
-        const { id, author } = data;
-        const { newComment, isEditing, title, content } = this.state;
+        const { id, author, createdAt, editedAt } = data;
+        const { newComment, isEditing, title, content, likeCount, dislikeCount, userLiked, userDisliked } = this.state;
 
         return (
             <div className="my-4 mx-4">
                 <Card className="my-4 mx-4">
+                    <Row className="post-header">
+                        <Col xs="auto" className="d-flex align-items-center">
+                            <div className={`like-indicator ${userLiked ? 'active' : ''}`} onClick={this.handleLike}>
+                                <FaThumbsUp />
+                                <span>{likeCount}</span>
+                            </div>
+                        </Col>
+                        <Col>
+                            <div className={`like-indicator ${userDisliked ? 'active' : ''}`} onClick={this.handleDislike}>
+                                <FaThumbsDown />
+                                <span>{dislikeCount}</span>
+                            </div>
+                        </Col>
+                    </Row>
                     <CardBody>
                         {isEditing ? (
                             <Form>
@@ -124,7 +230,7 @@ class Post extends Component<Props, PostState> {
                                 <CardTitle tag="h5">{title}</CardTitle>
                                 <CardText>{content}</CardText>
                                 <div>
-                                    <small>Posted by {author.name}</small>
+                                    <small>Posted by {author.name} on {createdAt.toLocaleString()} | {editedAt ? `Last edited on ${editedAt.toLocaleString()}` : ''}</small>
                                 </div>
                                 <Button color="primary" onClick={this.handleEdit}>Edit</Button>
                             </>
@@ -137,12 +243,13 @@ class Post extends Component<Props, PostState> {
                         <Row key={comment.id}>
                             <Col sm="12" key={comment.id}>
                                 <PostComment
+                                    id={comment.id}
                                     key={comment.id}
                                     author={comment.author}
                                     content={comment.content}
                                     createdAt={comment.createdAt}
                                     editedAt={comment.editedAt}
-                                    id={comment.id}
+                                    likes={comment.likes}
                                 ></PostComment>
                             </Col>
                         </Row>
@@ -170,4 +277,4 @@ class Post extends Component<Props, PostState> {
     }
 }
 
-export default withLoaderData<PostProps>(Post);
+export default connect(mapStateToProps)(withLoaderData<PostProps>(Post));

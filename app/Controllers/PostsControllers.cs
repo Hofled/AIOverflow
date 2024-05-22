@@ -86,5 +86,26 @@ namespace AIOverflow.Controllers.Posts
                 return NotFound();
             }
         }
+
+        // POST: posts/{id}/setLikeScore
+        [HttpPost("{id:int}/setLikeScore")]
+        public async Task<ActionResult<int>> SetPostLikeScore(int id, [FromBody] LikeSetDto likeSetDto)
+        {
+            try
+            {
+                var idClaim = User.Claims.FirstOrDefault(c => c.Type == "ID");
+                if (idClaim == null)
+                {
+                    return Unauthorized();
+                }
+
+                var newScore = await _postService.SetPostLikeAsync(id, int.Parse(idClaim.Value), likeSetDto.Score);
+                return Ok(newScore);
+            }
+            catch (System.Exception)
+            {
+                return NotFound();
+            }
+        }
     }
 }

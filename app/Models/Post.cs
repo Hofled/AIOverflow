@@ -1,9 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using AIOverflow.Identity;
-using System.Collections.Generic;  
 using AIOverflow.Models.Comments;
-
-
+using AIOverflow.Models.Likes;
 
 namespace AIOverflow.Models.Posts
 {
@@ -13,7 +11,7 @@ namespace AIOverflow.Models.Posts
         public string Title { get; set; }
         public string Content { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime EditedAt { get; set; }
+        public DateTime? EditedAt { get; set; }
 
         // Foreign key
         public int UserId { get; set; }
@@ -24,6 +22,7 @@ namespace AIOverflow.Models.Posts
 
         // Navigation property for comments on the post
         public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
-
+        // Navigation property for likes on the post
+        public virtual ICollection<PostLike> Likes { get; set; } = new List<PostLike>();
     }
 }

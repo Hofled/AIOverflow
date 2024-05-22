@@ -1,6 +1,44 @@
 interface Author {
+    id: number;
     name: string;
 }
+
+export interface APILike {
+    id: number;
+    user: Author;
+    score: number;
+    createdAt: string;
+}
+
+export interface Like {
+    id: number;
+    user: Author;
+    score: number;
+    createdAt: Date;
+}
+
+export let APILikeToLike = (like: APILike): Like => {
+    return {
+        id: like.id,
+        user: like.user,
+        score: like.score,
+        createdAt: new Date(like.createdAt),
+    };
+};
+
+let APILikeMapToLikeMap = (likes: Map<number, APILike>): Map<number, Like> => {
+    let newLikes = new Map<number, Like>();
+
+    if (likes.size === 0) {
+        return newLikes;
+    }
+
+    for (let [id, like] of likes) {
+        newLikes.set(id, APILikeToLike(like));
+    }
+
+    return newLikes;
+};
 
 export interface APIComment {
     id: number;
@@ -8,6 +46,7 @@ export interface APIComment {
     createdAt: string;
     editedAt?: string | null;
     author: Author;
+    likes: Map<number, APILike>;
 }
 
 export interface Comment {
@@ -16,6 +55,28 @@ export interface Comment {
     createdAt: Date;
     editedAt?: Date | null;
     author: Author;
+    likes: Map<number, Like>;
+}
+
+export let APICommentToComment = (comment: APIComment): Comment => {
+    const likesMap = new Map<number, APILike>();
+    for (let [k, v] of Object.entries(comment.likes)) {
+        likesMap.set(parseInt(k), v as APILike);
+    }
+    return {
+        id: comment.id,
+        content: comment.content,
+        createdAt: new Date(comment.createdAt),
+        editedAt: comment.editedAt ? new Date(comment.editedAt) : null,
+        author: comment.author,
+        likes: APILikeMapToLikeMap(likesMap),
+    };
+};
+
+
+export interface NewComment {
+    content: string;
+    postId: number;
 }
 
 export interface APIPost {
@@ -27,17 +88,8 @@ export interface APIPost {
     editedAt?: string | null;
     author: Author;
     comments: APIComment[];
+    likes: Map<number, APILike>;
 }
-
-export let APICommentToComment = (comment: APIComment): Comment => {
-    return {
-        id: comment.id,
-        content: comment.content,
-        createdAt: new Date(comment.createdAt),
-        editedAt: comment.editedAt ? new Date(comment.editedAt) : null,
-        author: comment.author,
-    };
-};
 
 export interface Post {
     id: number;
@@ -48,9 +100,14 @@ export interface Post {
     editedAt?: Date | null;
     author: Author;
     comments: Comment[];
+    likes: Map<number, Like>;
 }
 
 export let APIPostToPost = (post: APIPost): Post => {
+    const likesMap = new Map<number, APILike>();
+    for (let [k, v] of Object.entries(post.likes)) {
+        likesMap.set(parseInt(k), v as APILike);
+    }
     return {
         id: post.id,
         userId: post.userId,
@@ -60,6 +117,7 @@ export let APIPostToPost = (post: APIPost): Post => {
         editedAt: post.editedAt ? new Date(post.editedAt) : null,
         author: post.author,
         comments: post.comments.map(c => APICommentToComment(c)),
+        likes: APILikeMapToLikeMap(likesMap),
     };
 };
 
@@ -71,9 +129,4 @@ export interface UpdatePost {
 export interface NewPost {
     title: string;
     content: string;
-}
-
-export interface NewComment {
-    content: string;
-    postId: number;
 }

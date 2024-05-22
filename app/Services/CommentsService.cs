@@ -1,7 +1,6 @@
 using AIOverflow.Database;
 using AIOverflow.DTOs;
 using AIOverflow.Models.Comments;
-using Microsoft.EntityFrameworkCore;
 
 namespace AIOverflow.Services.Comments
 {
@@ -12,6 +11,7 @@ namespace AIOverflow.Services.Comments
         Task<List<CommentDisplayDto>> GetAllCommentsByPostIdAsync(int postId);
         Task UpdateCommentAsync(int id, CommentUpdateDto commentDto);
         Task DeleteCommentAsync(int id);
+        Task<int> SetCommentLikeAsync(int commentId, int userId, int score);
     }
 
     public class CommentsService : ICommentService
@@ -24,12 +24,6 @@ namespace AIOverflow.Services.Comments
         }
         public async Task<CommentDisplayDto> AddCommentAsync(CommentCreateDto commentDto, int authorID)
         {
-            // if (!await _db.Posts.AnyAsync(p => p.Id == commentDto.PostId))
-            //     throw new ArgumentException("Post with the provided ID does not exist");
-
-            // if (!await _db.Users.AnyAsync(u => u.Id == commentDto.UserId))
-            //     throw new ArgumentException("User with the provided ID does not exist.");
-
             var now = DateTime.UtcNow;
 
             var newComment = new Comment
@@ -57,13 +51,13 @@ namespace AIOverflow.Services.Comments
             return _ToCommentDisplayDto(comment);
         }
 
-
         public async Task<List<CommentDisplayDto>> GetAllCommentsByPostIdAsync(int postId)
         {
             var comments = await _db.GetAllCommentsByPostIdAsync(postId);
 
-            return comments.Select(c => _ToCommentDisplayDto(c)).ToList();
+            return comments.Select(_ToCommentDisplayDto).ToList();
         }
+
 
         public async Task UpdateCommentAsync(int id, CommentUpdateDto commentDto)
         {
@@ -83,14 +77,28 @@ namespace AIOverflow.Services.Comments
             await _db.DeleteCommentAsync(id);
         }
 
+        public async Task<int> SetCommentLikeAsync(int commentId, int userId, int score)
+        {
+            return await _db.SetCommentLikeAsync(commentId, userId, score);
+        }
+
         private CommentDisplayDto _ToCommentDisplayDto(Comment comment)
         {
+            var likesDict = comment.Likes.ToDictionary(l => l.UserId, l => new LikeDisplayDto
+            {
+                Id = l.Id,
+                CreatedAt = l.CreatedAt,
+                Score = l.Score,
+                User = new UserDto { Id = l.User.Id, Name = l.User.Name }
+            });
+
             return new CommentDisplayDto
             {
                 Id = comment.Id,
                 Content = comment.Content,
                 CreatedAt = comment.CreatedAt,
-                Author = new UserDto { Id = comment.Author.Id, Name = comment.Author.Name }
+                Author = new UserDto { Id = comment.Author.Id, Name = comment.Author.Name },
+                Likes = likesDict
             };
         }
     }

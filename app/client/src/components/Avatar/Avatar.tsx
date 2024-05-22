@@ -3,17 +3,23 @@ import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Media } from 'rea
 import authService from '../../services/auth/service';
 import './Avatar.css';
 import { Link } from 'react-router-dom';
+import { RootState } from '../../state/reducers';
+import { connect } from 'react-redux';
 
 interface AvatarState {
     dropdownOpened: boolean
 }
 
 interface AvatarProps {
-    username: string;
+    username?: string;
     size: 'sm' | 'md' | 'lg'; // Optional size prop for small, medium, or large avatars
 }
 
-export default class Avatar extends Component<AvatarProps, AvatarState> {
+const mapStateToProps = (state: RootState) => ({
+    username: state.identity.username,
+});
+
+class Avatar extends Component<AvatarProps, AvatarState> {
     constructor(props: AvatarProps) {
         super(props);
 
@@ -23,12 +29,18 @@ export default class Avatar extends Component<AvatarProps, AvatarState> {
     }
 
     // Function to extract the initial from the username
-    getInitial = (username: string) => {
+    getInitial = (username?: string) => {
+        if (!username) return '';
+
         const words = username.split(' ');
         return words.length === 1
             ? username.charAt(0).toUpperCase()
             : words[0].charAt(0).toUpperCase() + words[1].charAt(0).toUpperCase();
     };
+
+    handleLogout = () => {
+        authService.logout();
+    }
 
     toggleDropdown = () => {
         this.setState({ dropdownOpened: !this.state.dropdownOpened });
@@ -50,9 +62,11 @@ export default class Avatar extends Component<AvatarProps, AvatarState> {
                         <DropdownItem>Profile</DropdownItem>
                     </Link>
                     <DropdownItem divider />
-                    <DropdownItem onClick={() => authService.logout()}>Logout</DropdownItem>
+                    <DropdownItem onClick={this.handleLogout}>Logout</DropdownItem>
                 </DropdownMenu>
             </Dropdown>
         );
     }
 };
+
+export default connect(mapStateToProps)(Avatar);

@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using AIOverflow.Identity;
 using AIOverflow.Models.Posts;
+using AIOverflow.Models.Likes;
 
 namespace AIOverflow.Models.Comments
 {
@@ -18,8 +19,10 @@ namespace AIOverflow.Models.Comments
         // Navigation properties
         [ForeignKey("UserId")]
         public virtual User Author { get; set; }
-
         [ForeignKey("PostId")]
         public virtual Post Post { get; set; }
+
+        //navigation properties for likes on the comment
+        public virtual ICollection<CommentLike> Likes { get; set; } = new List<CommentLike>();
     }
 }
