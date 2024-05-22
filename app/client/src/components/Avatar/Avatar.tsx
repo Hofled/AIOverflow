@@ -58,9 +58,9 @@ class Avatar extends Component<AvatarProps, AvatarState> {
                 </DropdownToggle>
                 <DropdownMenu end>
                     <DropdownItem header>{this.props.username}</DropdownItem>
-                    <Link to="/profile">
+                    {/* <Link to="/profile">
                         <DropdownItem>Profile</DropdownItem>
-                    </Link>
+                    </Link> */}
                     <DropdownItem divider />
                     <DropdownItem onClick={this.handleLogout}>Logout</DropdownItem>
                 </DropdownMenu>
