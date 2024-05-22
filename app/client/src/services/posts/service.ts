@@ -1,7 +1,7 @@
 import { AxiosHeaders, AxiosResponse } from "axios";
 import { OperationStatus, axiosRequest, wrapFail, wrapSuccess } from "../axios";
-import { APIPost, Post, Comment, NewComment, NewPost, UpdatePost, APIComment, APICommentToComment, APIPostToPost } from "./models";
-import { PostPaths, commentsPrefix, postsPrefix } from "./consts";
+import { APIPost, Post, NewPost, UpdatePost, APIPostToPost } from "./models";
+import { PostPaths, postsPrefix } from "./consts";
 
 export interface PostUpdater {
     updatePost(postID: number, updatePost: UpdatePost): Promise<OperationStatus<null>>;
@@ -27,15 +27,6 @@ class PostsService implements PostUpdater {
         }
 
         return axiosRequest<APIPost, Post>(`${postsPrefix}/`, "POST", (r: AxiosResponse<APIPost>) => wrapSuccess(APIPostToPost(r.data)), (r) => wrapFail(r), newPost, new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}` }));
-    }
-
-    async addPostComment(newComment: NewComment): Promise<OperationStatus<Comment>> {
-        const jwtToken = localStorage.getItem('token');
-        if (!jwtToken) {
-            return wrapFail();
-        }
-
-        return axiosRequest<APIComment, Comment>(`${commentsPrefix}/`, "POST", (r: AxiosResponse<APIComment>) => wrapSuccess(APICommentToComment(r.data)), (r) => wrapFail(r), newComment, new AxiosHeaders({ 'Authorization': `Bearer ${jwtToken}` }));
     }
 
     async setPostVoteScore(postId: number, score: number): Promise<OperationStatus<number>> {

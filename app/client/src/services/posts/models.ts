@@ -1,4 +1,8 @@
-interface Author {
+import { APICommentToComment } from "../comments/models";
+import { Comment } from "../comments/models";
+import { APIComment } from "../comments/models";
+
+export interface Author {
     id: number;
     name: string;
 }
@@ -26,7 +30,7 @@ export let APILikeToLike = (like: APILike): Like => {
     };
 };
 
-let APILikeMapToLikeMap = (likes: Map<number, APILike>): Map<number, Like> => {
+export let APILikeMapToLikeMap = (likes: Map<number, APILike>): Map<number, Like> => {
     let newLikes = new Map<number, Like>();
 
     if (likes.size === 0) {
@@ -39,45 +43,6 @@ let APILikeMapToLikeMap = (likes: Map<number, APILike>): Map<number, Like> => {
 
     return newLikes;
 };
-
-export interface APIComment {
-    id: number;
-    content: string;
-    createdAt: string;
-    editedAt?: string | null;
-    author: Author;
-    likes: Map<number, APILike>;
-}
-
-export interface Comment {
-    id: number;
-    content: string;
-    createdAt: Date;
-    editedAt?: Date | null;
-    author: Author;
-    likes: Map<number, Like>;
-}
-
-export let APICommentToComment = (comment: APIComment): Comment => {
-    const likesMap = new Map<number, APILike>();
-    for (let [k, v] of Object.entries(comment.likes)) {
-        likesMap.set(parseInt(k), v as APILike);
-    }
-    return {
-        id: comment.id,
-        content: comment.content,
-        createdAt: new Date(comment.createdAt),
-        editedAt: comment.editedAt ? new Date(comment.editedAt) : null,
-        author: comment.author,
-        likes: APILikeMapToLikeMap(likesMap),
-    };
-};
-
-
-export interface NewComment {
-    content: string;
-    postId: number;
-}
 
 export interface APIPost {
     id: number;

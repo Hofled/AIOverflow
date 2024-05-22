@@ -106,7 +106,14 @@ namespace AIOverflow.Services.Posts
                     Id = c.Id,
                     Content = c.Content,
                     CreatedAt = c.CreatedAt,
-                    Author = new UserDto { Id = c.Author.Id, Name = c.Author.Name }
+                    Author = new UserDto { Id = c.Author.Id, Name = c.Author.Name },
+                    Likes = c.Likes.ToDictionary(l => l.UserId, l => new LikeDisplayDto
+                    {
+                        Id = l.Id,
+                        CreatedAt = l.CreatedAt,
+                        User = new UserDto { Id = l.UserId, Name = l.User.Name },
+                        Score = l.Score
+                    }),
                 }).ToList(),
                 Likes = likesDict,
             };
